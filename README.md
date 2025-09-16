@@ -1,14 +1,14 @@
 # Olá, eu sou Daniel Schroeder 👋
 
-Desenvolvedor de Software, formado em **Sistemas de Informação**, com mais de 15 anos de experiência em automação comercial, aplicações móveis e web.
+Desenvolvedor de Software | +15 anos em automação comercial, Delphi, Java, PHP e integração de hardware | Sempre aprendendo
 
 ---
 
 ## 🚀 O que faço
-- Desenvolvimento e manutenção de sistemas em **Delphi + ACBR + SQL Firebird & MySQL**  
-- Aplicativos Android em **Java**  
-- Desenvolvimento web e APIs com **PHP e Node.js**  
-- Integração básica de hardware com **Arduino e microcontroladores (C)**  
+- 🖥️ Desenvolvimento e manutenção de sistemas em **Delphi + ACBR + SQL Firebird**  
+- 📱 Aplicativos Android em **Java**  
+- 🌐 Desenvolvimento web e APIs com **PHP e Node.js**  
+- ⚡ Integração básica de hardware com **Arduino e microcontroladores (C)**  
 
 ---
 
@@ -21,7 +21,7 @@ Desenvolvedor de Software, formado em **Sistemas de Informação**, com mais de 
 ---
 
 ## 🌱 Aprendizado contínuo
-Experiência consolidada em sistemas corporativos e automação, sempre combinada com vontade de aprender e evoluir.
+Experiência consolidada em sistemas corporativos e automação, combinada com vontade de aprender e explorar novas tecnologias.
 
 ---
 
@@ -30,3 +30,8 @@ Experiência consolidada em sistemas corporativos e automação, sempre combinad
 - **LinkedIn:** [Daniel Schroeder](https://www.linkedin.com/in/schrsistemas/)  
 - **WhatsApp:** [+55 47 99736-8457](https://wa.me/5547997368457)
 
+---
+
+## 📊 GitHub Stats
+![Daniel's GitHub Stats](https://github-readme-stats.vercel.app/api?username=schrsistemas&show_icons=true&theme=radical)
+![Top Languages](https://github-readme-stats.vercel.app/api/top-langs/?username=schrsistemas&layout=compact&theme=radical)
