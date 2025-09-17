@@ -37,7 +37,7 @@ Experiência consolidada em sistemas corporativos e automação, combinada com v
 ![Top Languages](https://github-readme-stats.vercel.app/api/top-langs/?username=schrsistemas&layout=compact&theme=github)
 
 
-## 🎣 Hobies 
+## 🎣 Hobbies  
 <p align="center">
   <img src="./image1.png" alt="Minha Imagem" width="50%" style="border-radius: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);"/>
 </p>
