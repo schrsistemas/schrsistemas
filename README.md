@@ -39,6 +39,6 @@ Experiência consolidada em sistemas corporativos e automação, combinada com v
 
 ## 🎣 Hobies 
 <p align="center">
-  <img src="./image1.png" alt="Minha Imagem" width="250"/>
+  <img src="./image1.png" alt="Minha Imagem" width="320" style="border-radius: 20px;"/>
 </p>
 
