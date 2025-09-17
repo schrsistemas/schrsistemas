@@ -35,3 +35,8 @@ Experiência consolidada em sistemas corporativos e automação, combinada com v
 ## 📊 GitHub Stats
 ![Daniel's GitHub Stats](https://github-readme-stats.vercel.app/api?username=schrsistemas&show_icons=true&theme=github)
 ![Top Languages](https://github-readme-stats.vercel.app/api/top-langs/?username=schrsistemas&layout=compact&theme=github)
+
+
+## 🎣 Hobies 
+![Minha Imagem](./image1.png)
+
