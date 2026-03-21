@@ -1,65 +1,74 @@
-# 👋 Olá, eu sou Daniel Schroeder
+# 👋 Daniel Schroeder
 
-💻 Desenvolvedor de Software  
-📍 +15 anos de experiência em sistemas corporativos e automação comercial  
-
----
-
-## 🚀 Sobre mim
-
-Atuo no desenvolvimento e manutenção de sistemas empresariais, com forte experiência em:
-
-- Automação comercial (PDV, NFCe, NFe, CTe)
-- Sistemas corporativos e ERP
-- Integração com hardware e dispositivos fiscais
-- Suporte técnico e resolução de incidentes críticos
-
-Hoje também venho evoluindo em:
-- Node.js
-- Inteligência Artificial aplicada ao suporte
-- Automação de processos
+💻 Software Engineer | ERP | Automação Comercial | Sistemas Fiscais  
+📍 +15 anos resolvendo problemas reais em produção  
 
 ---
 
-## 🛠️ Stack principal
+## 🧠 Sobre mim
 
-### Backend / Desktop
-- Delphi (FireDAC, Firebird)
+Desenvolvedor com forte atuação em sistemas corporativos, automação comercial e integrações fiscais.
+
+Experiência prática em ambientes críticos, lidando com:
+
+- NFCe, NFe, CTe (SEFAZ)
+- PDV e automação comercial
+- Banco de dados corrompido / recuperação
+- Sistemas legados em produção
+- Suporte técnico de alto nível
+
+👉 Foco não é só código — é **resolver problema de negócio**.
+
+---
+
+## 🚀 Stack Principal
+
+### 🧱 Backend / Desktop
+- Delphi (FireDAC, arquitetura ERP)
 - ACBR (NFe, NFCe, CTe)
+- Node.js (automação, bots, APIs)
 - PHP
-- Node.js
 
-### Mobile
+### 📱 Mobile
 - Java (Android)
 
-### Banco de dados
-- Firebird
+### 🗄️ Banco de Dados
+- Firebird (especialista)
 - SQL
 
-### Outros
-- Integração com hardware
+### ⚙️ Outros
+- Integração com hardware (balança, impressora, SAT)
 - Arduino / microcontroladores (básico)
 
 ---
 
-## 💡 Especialidades
+## 💣 Diferencial
 
-- Sistemas fiscais (NFe, NFCe, CTe)
-- Automação comercial
-- Suporte técnico avançado
-- Diagnóstico de problemas críticos
-- Manutenção e evolução de sistemas legados
+- Experiência real em produção (não só projeto acadêmico)
+- Forte atuação em sistemas fiscais brasileiros
+- Capacidade de diagnosticar problemas complexos rapidamente
+- Atua bem sob pressão (incidentes críticos)
+- Conhecimento de ponta a ponta (DB → backend → PDV)
 
 ---
 
-## 📈 Em evolução
+## 🧠 Atualmente evoluindo
 
-Atualmente focado em:
-
-- IA aplicada ao atendimento e suporte
-- Bots inteligentes (Discord / automação)
+- Inteligência Artificial aplicada ao suporte
+- Bots inteligentes (Discord / automação de atendimento)
 - Arquitetura moderna com Node.js
-- Melhoria de processos e produtividade
+- Melhoria de produtividade e automação de processos
+
+---
+
+## 📦 Projetos em destaque
+
+👉 Em evolução:
+- Discord AI Bot (automação de suporte + gestão de tarefas)
+- Sistemas de automação e atendimento inteligente
+
+⚠️ Observação:
+Grande parte dos projetos reais são privados (ERP e clientes)
 
 ---
 
@@ -71,16 +80,11 @@ Atualmente focado em:
 
 ---
 
-## ⚠️ Observação
-
-Grande parte da minha experiência está em projetos privados (ERP e sistemas corporativos), portanto nem tudo está refletido aqui no GitHub.
-
----
-
 ## 🎯 Objetivo
 
-Evoluir de desenvolvedor operacional para:
+Evoluir para:
 
-- Desenvolvedor estratégico
-- Criador de soluções inteligentes
-- Arquitetura e automação de sistemas
+- Engenheiro de Software Sênior estratégico
+- Arquitetura de sistemas
+- Automação inteligente com IA
+- Criação de produtos próprios (SaaS)
