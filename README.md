@@ -1,46 +1,86 @@
-# Olá, eu sou Daniel Schroeder 👋
+# 👋 Olá, eu sou Daniel Schroeder
 
-Desenvolvedor de Software | +15 anos em automação comercial, Delphi, Java, PHP e integração de hardware | Sempre aprendendo
-
----
-
-## 🚀 O que faço
-- 🖥️ Desenvolvimento e manutenção de sistemas em **Delphi + ACBR + SQL Firebird**  
-- 📱 Aplicativos Android em **Java**  
-- 🌐 Desenvolvimento web e APIs com **PHP e Node.js**  
-- ⚡ Integração básica de hardware com **Arduino e microcontroladores (C)**  
+💻 Desenvolvedor de Software  
+📍 +15 anos de experiência em sistemas corporativos e automação comercial  
 
 ---
 
-## 💡 Skills
-- **Linguagens:** Delphi, Java, PHP, Node.js, C básico  
-- **Banco de dados:** Firebird, SQL  
-- **Frameworks/Tools:** ACBR, Spring Boot  
-- **Áreas de expertise:** Automação Comercial, PCP, Sistemas Corporativos, Mobile  
+## 🚀 Sobre mim
+
+Atuo no desenvolvimento e manutenção de sistemas empresariais, com forte experiência em:
+
+- Automação comercial (PDV, NFCe, NFe, CTe)
+- Sistemas corporativos e ERP
+- Integração com hardware e dispositivos fiscais
+- Suporte técnico e resolução de incidentes críticos
+
+Hoje também venho evoluindo em:
+- Node.js
+- Inteligência Artificial aplicada ao suporte
+- Automação de processos
 
 ---
 
-## 🌱 Aprendizado contínuo
-Experiência consolidada em sistemas corporativos e automação, combinada com vontade de aprender e explorar novas tecnologias.
+## 🛠️ Stack principal
+
+### Backend / Desktop
+- Delphi (FireDAC, Firebird)
+- ACBR (NFe, NFCe, CTe)
+- PHP
+- Node.js
+
+### Mobile
+- Java (Android)
+
+### Banco de dados
+- Firebird
+- SQL
+
+### Outros
+- Integração com hardware
+- Arduino / microcontroladores (básico)
+
+---
+
+## 💡 Especialidades
+
+- Sistemas fiscais (NFe, NFCe, CTe)
+- Automação comercial
+- Suporte técnico avançado
+- Diagnóstico de problemas críticos
+- Manutenção e evolução de sistemas legados
+
+---
+
+## 📈 Em evolução
+
+Atualmente focado em:
+
+- IA aplicada ao atendimento e suporte
+- Bots inteligentes (Discord / automação)
+- Arquitetura moderna com Node.js
+- Melhoria de processos e produtividade
 
 ---
 
 ## 📫 Contato
-- **Email:** schrsistemas@gmail.com  
-- **LinkedIn:** [Daniel Schroeder](https://www.linkedin.com/in/schrsistemas/)  
-- **WhatsApp:** [+55 47 99736-8457](https://wa.me/5547997368457)
+
+- Email: schrsistemas@gmail.com  
+- LinkedIn: https://www.linkedin.com/in/schrsistemas/  
+- WhatsApp: https://wa.me/5547997368457  
 
 ---
 
-## 📊 GitHub Stats
-![Daniel's GitHub Stats](https://github-readme-stats.vercel.app/api?username=schrsistemas&show_icons=true&theme=github)
-![Top Languages](https://github-readme-stats.vercel.app/api/top-langs/?username=schrsistemas&layout=compact&theme=github)
+## ⚠️ Observação
 
+Grande parte da minha experiência está em projetos privados (ERP e sistemas corporativos), portanto nem tudo está refletido aqui no GitHub.
 
-## 🎣 Hobbies  
-<p align="center">
-  <img src="./image1.png" alt="Minha Imagem" width="50%" style="border-radius: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);"/>
-</p>
+---
 
+## 🎯 Objetivo
 
+Evoluir de desenvolvedor operacional para:
 
+- Desenvolvedor estratégico
+- Criador de soluções inteligentes
+- Arquitetura e automação de sistemas
