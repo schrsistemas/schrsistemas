@@ -1,0 +1,41 @@
+name: Site quality
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "site/**"
+      - ".github/workflows/site-check.yml"
+  pull_request:
+    paths:
+      - "site/**"
+      - ".github/workflows/site-check.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Lint and static build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: site
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+      - name: Install dependencies
+        run: npm install
+      - name: Lint
+        run: npm run lint
+      - name: Build static site
+        run: npm run build
+      - name: Verify export output
+        run: test -f out/index.html && test -f out/404.html
