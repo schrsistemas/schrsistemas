@@ -10,19 +10,22 @@ Estas regras se aplicam a todo o repositório e prevalecem sobre preferências l
 - Nunca executar `git push --force`, reescrever histórico ou descartar alterações existentes.
 - Não fazer deploy sem solicitação explícita do responsável pelo projeto.
 
-## Custo zero como requisito (LOW COST / FREE-FIRST)
-- Custo zero é requisito arquitetural obrigatório, não apenas preferência.
-- Priorizar serviços, bibliotecas, ferramentas e planos gratuitos, sem trial ou crédito promocional como dependência de produção.
-- Não contratar, habilitar ou migrar para planos pagos; não criar recursos que possam gerar cobrança.
-- Não adicionar cartão, assinatura, add-on pago ou consumo faturável sem autorização explícita.
-- Antes de adicionar serviço externo, comparar alternativa gratuita, limites, quotas, retenção, custos indiretos e risco de cobrança.
-- Preferir conteúdo estático e processamento local/edge simples; não provisionar backend, banco, fila, storage ou observabilidade paga sem necessidade comprovada.
-- Na Cloudflare, permanecer nos planos Free e respeitar os limites nativos. Não tentar contornar limites gratuitos por meio de serviços pagos.
-- Não declarar configurações de limites que o plano Free não suporte. Quando a plataforma aplicar um limite padrão automaticamente, omitir a configuração explícita em vez de solicitar upgrade.
-- Para Cloudflare Workers Free, não configurar `limits.cpu_ms` no Wrangler: o plano aplica seu limite padrão de CPU e rejeita a configuração explícita de CPU com erro 100328.
-- Não habilitar Workers Paid para aumentar CPU, requisições ou quotas. Reduzir escopo, otimizar código ou aguardar a renovação da quota gratuita.
-- Antes de habilitar produtos adicionais da Cloudflare, conferir documentação, limites atuais e possibilidade de cobrança.
-- Se uma exigência não puder ser atendida no plano gratuito, interromper e apresentar alternativas gratuitas; não ativar plano pago automaticamente.
+## LOW COST = ZERO COST (REGRA INEGOCIÁVEL)
+- O custo total de infraestrutura, hospedagem, serviços, APIs, ferramentas e operação deve ser ZERO.
+- Utilizar exclusivamente planos, serviços e recursos gratuitos que não gerem cobrança atual ou futura.
+- É proibido contratar, ativar, testar ou migrar para planos pagos, add-ons, assinaturas, trials pagos, créditos promocionais ou recursos faturáveis.
+- É proibido adicionar cartão, habilitar faturamento ou criar recursos que possam gerar cobrança.
+- Não considerar “baixo custo”, “barato” ou “pay as you go” como alternativa aceitável: o requisito é custo zero, não custo reduzido.
+- Antes de adotar qualquer serviço ou recurso, verificar se permanece gratuito sem prazo promocional, cartão obrigatório ou cobrança por excedente.
+- Avaliar limites, quotas, retenção, tráfego, armazenamento, builds, CPU, requisições e custos indiretos antes de implementar.
+- Preferir conteúdo estático, processamento local e recursos gratuitos nativos.
+- Não provisionar backend, banco, fila, storage, observabilidade, domínio adicional ou serviço externo se houver possibilidade de cobrança.
+- Na Cloudflare, utilizar somente o plano Free e recursos comprovadamente gratuitos. Não habilitar Workers Paid ou recursos faturáveis.
+- Respeitar os limites do plano gratuito. Se um limite for atingido, otimizar, reduzir escopo, aguardar a renovação da quota ou apresentar alternativa gratuita.
+- Não contornar limites gratuitos por meio de outro serviço pago.
+- Não declarar configurações que o plano gratuito não suporta. Quando a plataforma aplicar um limite padrão automaticamente, omitir a configuração explícita.
+- Para Cloudflare Workers Free, não configurar `limits.cpu_ms` no Wrangler: o plano aplica o limite padrão de CPU e rejeita a configuração explícita com erro 100328.
+- Se um requisito não puder ser atendido com custo zero, interromper a implementação e explicar a limitação, apresentando somente alternativas gratuitas. Nunca ativar cobrança para concluir a tarefa.
 
 ## Arquitetura híbrida
 - O portal institucional fica em `site/` e é publicado como exportação estática no Cloudflare Pages.
@@ -30,7 +33,7 @@ Estas regras se aplicam a todo o repositório e prevalecem sobre preferências l
 - Pages e Workers usam o mesmo repositório e branch `main`, mas possuem diretórios raiz, builds e deploys independentes.
 - O site não deve depender do Worker para renderizar páginas públicas.
 - O Worker não deve ser usado como substituto do Pages para servir o portal institucional.
-- Não adicionar banco, filas, KV, R2, Durable Objects ou outros serviços sem requisito concreto, análise de limites/custos e autorização.
+- Não adicionar banco, filas, KV, R2, Durable Objects ou outros serviços sem requisito concreto e confirmação de que não geram cobrança.
 - Não adicionar dependências de runtime ao site para resolver necessidades que pertencem à API.
 - Endpoints de escrita exigem contrato, validação, autenticação/autorização apropriadas e proteção contra abuso antes de serem publicados.
 
