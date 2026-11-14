@@ -93,20 +93,28 @@ Evoluir para:
 
 ## 🌐 Portal institucional
 
-O portal público da Schr Sistemas está sendo desenvolvido em `site/`.
+O portal público da Schr Sistemas está em desenvolvimento no diretório `site/`.
 
-- Domínio: https://schrsistemas.com
+- Domínio planejado: https://schrsistemas.com
 - Aplicação: Next.js + TypeScript + Material UI
-- Hospedagem planejada: Cloudflare Pages
-- Publicação: integração GitHub na branch `main`
-- Estratégia: exportação estática para manter custo operacional zero
+- Hospedagem: Cloudflare Pages (exportação estática)
+- Branch de produção: `main`
 
-### Documentação
+## 🔌 API e serviços
+
+A API HTTP fica separada em `workers/api/` e será executada no Cloudflare Workers. Pages e Workers usam o mesmo repositório, mas possuem builds e implantações independentes.
+
+- Health check: `GET /api/health`
+- Contrato: [docs/API-CONTRACT.md](docs/API-CONTRACT.md)
+- Configuração do Worker: [workers/api/README.md](workers/api/README.md)
+
+## 📚 Documentação
 
 - [Diretrizes para agentes de IA](AGENTS.md)
-- [Arquitetura](docs/ARCHITECTURE.md)
+- [Arquitetura híbrida](docs/ARCHITECTURE.md)
+- [Contrato da API](docs/API-CONTRACT.md)
 - [Publicação Cloudflare](docs/DEPLOY-CLOUDFLARE.md)
 - [Manutenção do conteúdo](docs/CONTENT-MAINTENANCE.md)
-- [Instruções da aplicação web](site/README.md)
+- [Instruções do site](site/README.md)
 
-O site apresenta a marca Schr Sistemas e o portfólio profissional de Daniel Schroeder. A publicação no domínio depende da configuração da conta Cloudflare e da validação DNS; não considerar o domínio publicado até concluir essa etapa.
+O domínio permanece registrado na Hostinger. A publicação e a conexão do domínio dependem da configuração e validação nos painéis Cloudflare e DNS. Não considerar Pages, Worker ou domínio publicados até confirmar os respectivos deploys.
