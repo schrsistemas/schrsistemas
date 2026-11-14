@@ -118,5 +118,6 @@ A API HTTP fica separada em `workers/api/` e será executada no Cloudflare Worke
 - [Publicação Cloudflare](docs/DEPLOY-CLOUDFLARE.md)
 - [Manutenção do conteúdo](docs/CONTENT-MAINTENANCE.md)
 - [Instruções do site](site/README.md)
+- [Padrão de capacidade, escalabilidade e custo previsível](docs/engineering-capacity-and-scalability.md)
 
 O domínio permanece registrado na Hostinger. A publicação e a conexão do domínio dependem da configuração e validação nos painéis Cloudflare e DNS. Não considerar Pages, Worker ou domínio publicados até confirmar os respectivos deploys.
