@@ -1,6 +1,6 @@
 # Site institucional — Schr Sistemas
 
-Aplicação Next.js do portal `https://schrsistemas.com`.
+Aplicação Next.js do portal `https://schrsistemas.com`. O site é independente da API e publicado como conteúdo estático no Cloudflare Pages.
 
 ## Requisitos
 
@@ -28,11 +28,9 @@ npm run build
 
 O build de produção gera a exportação estática em `site/out`.
 
-## Hospedagem
+## Hospedagem — Cloudflare Pages
 
-O projeto foi configurado com `output: "export"` para Cloudflare Pages.
-
-Configuração recomendada no painel Cloudflare:
+Configuração do projeto Pages:
 
 - Tipo: Pages
 - Repositório: `schrsistemas/schrsistemas`
@@ -43,7 +41,7 @@ Configuração recomendada no painel Cloudflare:
 - Build output directory: `out`
 - Node.js: 22
 
-O deploy é acionado automaticamente por novos commits na branch `main`. Não é necessário Worker ou banco de dados para a versão inicial.
+O Pages publica o site institucional. A API dinâmica é um projeto separado em `workers/api/`, com seu próprio build e deploy. Não configure `npx wrangler deploy` no projeto Pages.
 
 ## Limitações intencionais da exportação estática
 
@@ -55,7 +53,7 @@ Não utilizar sem revisão arquitetural:
 - acesso a banco de dados em tempo de requisição;
 - otimização de imagem do servidor Next.js.
 
-Para formulários, APIs ou conteúdo dinâmico futuro, avaliar Cloudflare Workers e serviços gratuitos antes de adicionar infraestrutura.
+Esses requisitos pertencem à API Worker, salvo decisão arquitetural documentada.
 
 ## Conteúdo
 
