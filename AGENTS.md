@@ -10,13 +10,19 @@ Estas regras se aplicam a todo o repositório e prevalecem sobre preferências l
 - Nunca executar `git push --force`, reescrever histórico ou descartar alterações existentes.
 - Não fazer deploy sem solicitação explícita do responsável pelo projeto.
 
-## Custo zero como requisito
-- Priorizar serviços, bibliotecas e planos gratuitos.
-- Não contratar serviços, habilitar planos pagos ou criar recursos que possam gerar cobrança.
-- Antes de adicionar qualquer serviço externo, documentar alternativa gratuita e limites do plano.
-- Não introduzir banco de dados, backend ou processamento remoto quando conteúdo estático resolver o requisito.
-- Não depender de trial, crédito promocional ou serviço que exija cartão para manter o site no ar.
-- Antes de habilitar produtos adicionais da Cloudflare, conferir limites e cobrança do plano Free.
+## Custo zero como requisito (LOW COST / FREE-FIRST)
+- Custo zero é requisito arquitetural obrigatório, não apenas preferência.
+- Priorizar serviços, bibliotecas, ferramentas e planos gratuitos, sem trial ou crédito promocional como dependência de produção.
+- Não contratar, habilitar ou migrar para planos pagos; não criar recursos que possam gerar cobrança.
+- Não adicionar cartão, assinatura, add-on pago ou consumo faturável sem autorização explícita.
+- Antes de adicionar serviço externo, comparar alternativa gratuita, limites, quotas, retenção, custos indiretos e risco de cobrança.
+- Preferir conteúdo estático e processamento local/edge simples; não provisionar backend, banco, fila, storage ou observabilidade paga sem necessidade comprovada.
+- Na Cloudflare, permanecer nos planos Free e respeitar os limites nativos. Não tentar contornar limites gratuitos por meio de serviços pagos.
+- Não declarar configurações de limites que o plano Free não suporte. Quando a plataforma aplicar um limite padrão automaticamente, omitir a configuração explícita em vez de solicitar upgrade.
+- Para Cloudflare Workers Free, não configurar `limits.cpu_ms` no Wrangler: o plano aplica seu limite padrão de CPU e rejeita a configuração explícita de CPU com erro 100328.
+- Não habilitar Workers Paid para aumentar CPU, requisições ou quotas. Reduzir escopo, otimizar código ou aguardar a renovação da quota gratuita.
+- Antes de habilitar produtos adicionais da Cloudflare, conferir documentação, limites atuais e possibilidade de cobrança.
+- Se uma exigência não puder ser atendida no plano gratuito, interromper e apresentar alternativas gratuitas; não ativar plano pago automaticamente.
 
 ## Arquitetura híbrida
 - O portal institucional fica em `site/` e é publicado como exportação estática no Cloudflare Pages.
