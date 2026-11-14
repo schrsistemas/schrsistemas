@@ -118,3 +118,20 @@ Estas regras se aplicam a todo o repositório e prevalecem sobre preferências l
 - `docs/`: documentação operacional, contratos e arquitetura.
 - `.github/workflows/`: validações independentes para site e Worker.
 - Não mover, apagar ou reestruturar arquivos existentes sem necessidade comprovada.
+
+
+## Diretiva obrigatória — capacidade, escalabilidade e custo previsível
+
+Aplicar o padrão transversal documentado em `docs/engineering-capacity-and-scalability.md` a toda funcionalidade nova ou alterada.
+
+- Antes de adotar serviço, API, banco, cache, fila ou recurso cloud, verificar plano, quotas, limites, retenção, concorrência, CPU, armazenamento e condições de cobrança.
+- O requisito é custo total R$ 0; não usar trial, cartão, créditos promocionais, excedente faturável ou upgrade. Se a capacidade necessária não couber no plano gratuito, interromper e propor alternativa gratuita.
+- Dimensionar por operações por usuário/conta/evento, frequência, integrações, picos e retries; não presumir que o sistema suportará crescimento sem métricas.
+- Separar estado atual, histórico, cache, fila e auditoria; evitar read-modify-write de documentos crescentes e gravações redundantes.
+- Definir isolamento por tenant, rate limit, idempotência, backpressure, retry limitado e tratamento explícito de 429/timeout/falhas parciais.
+- Medir consumo e testar cenários de carga em ambiente isolado. Não executar testes de escrita de carga em produção.
+- Documentar limites, capacidade comprovada, hipóteses, recuperação, backup, exportação e exclusão.
+- Não migrar persistência nem criar binding/serviço sem análise de compatibilidade, custo e autorização necessária.
+- Incidentes de quota/capacidade devem gerar registro de causa, evidência, impacto, correção e prevenção, servindo de aprendizado para os demais projetos.
+
+Não declarar escalabilidade ou capacidade-alvo sem teste reproduzível e evidência operacional.
