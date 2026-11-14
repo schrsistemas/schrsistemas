@@ -55,7 +55,7 @@ Experiência prática em ambientes críticos, lidando com:
 ## 🧠 Atualmente evoluindo
 
 - Inteligência Artificial aplicada ao suporte
-- Bots inteligentes (Discord / automação de atendimento)
+- Bots inteligentes (Discord / automação de tarefas)
 - Arquitetura moderna com Node.js
 - Melhoria de produtividade e automação de processos
 
@@ -112,6 +112,7 @@ A API HTTP fica separada em `workers/api/` e será executada no Cloudflare Worke
 
 - [Diretrizes para agentes de IA](AGENTS.md)
 - [Arquitetura híbrida](docs/ARCHITECTURE.md)
+- [Plano de engenharia, segurança e IA](docs/ENGINEERING-ROADMAP.md)
 - [Contrato da API](docs/API-CONTRACT.md)
 - [Publicação Cloudflare](docs/DEPLOY-CLOUDFLARE.md)
 - [Manutenção do conteúdo](docs/CONTENT-MAINTENANCE.md)
