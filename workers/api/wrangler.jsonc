@@ -4,6 +4,9 @@
   "main": "src/index.ts",
   "compatibility_date": "2026-11-14",
   "workers_dev": true,
+  "limits": {
+    "cpu_ms": 10
+  },
   "observability": {
     "enabled": false
   }
