@@ -7,10 +7,6 @@ on:
     paths:
       - "site/**"
       - ".github/workflows/site-check.yml"
-  pull_request:
-    paths:
-      - "site/**"
-      - ".github/workflows/site-check.yml"
 
 permissions:
   contents: read
