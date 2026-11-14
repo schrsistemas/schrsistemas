@@ -92,3 +92,20 @@ Como Pages é hospedagem gerenciada, seguir o modo SSL recomendado no painel par
 ## Estado atual
 
 A configuração de aplicação e os arquivos de build estão no repositório. A criação do projeto Pages, a autorização GitHub/Cloudflare, a validação de domínio e a troca de nameservers exigem acesso aos respectivos painéis e ainda precisam ser executadas.
+
+## 7. Limites relevantes do plano gratuito
+
+Conforme a documentação oficial consultada em novembro de 2026:
+
+- Até 500 builds por mês.
+- Um build simultâneo por conta.
+- Até 100 domínios personalizados por projeto.
+- Até 20.000 arquivos por site.
+- Tamanho máximo de 25 MiB por arquivo.
+- Requisições a arquivos estáticos são gratuitas e ilimitadas.
+
+O portal institucional, sem Functions, banco de dados ou processamento por requisição, foi dimensionado para permanecer dentro desse modelo. Limites e condições comerciais podem mudar; revisar a página oficial antes de ampliar a infraestrutura.
+
+Referências:
+- https://developers.cloudflare.com/pages/platform/limits/
+- https://developers.cloudflare.com/pages/functions/pricing/
