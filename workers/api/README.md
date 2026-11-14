@@ -33,17 +33,27 @@ npm run check
 
 ## Deploy por Workers Builds
 
-Conecte o repositório existente no painel Cloudflare Workers Builds:
+Configuração do projeto existente no painel Cloudflare Workers Builds:
 
 | Campo | Valor |
 |---|---|
+| Worker | `schrsistemas` |
 | Repositório | `schrsistemas/schrsistemas` |
 | Production branch | `main` |
 | Root directory | `workers/api` |
 | Build command | `npm run check` |
 | Deploy command | `npm run deploy` |
+| Include paths | `workers/api/**` |
 
-O comando de deploy executa `wrangler deploy` usando o arquivo `wrangler.jsonc`. A implantação só ocorre quando o responsável a habilitar no painel Cloudflare.
+O comando de deploy executa `wrangler deploy` usando o arquivo `wrangler.jsonc`.
+
+## Plano Cloudflare Free — regra de CPU
+
+- Não declarar a propriedade `limits.cpu_ms` no `wrangler.jsonc`.
+- O plano Free aplica o limite padrão de CPU automaticamente.
+- Declarar explicitamente CPU gera erro Cloudflare `100328` (“CPU limits are not supported for the Free plan”).
+- Não contratar Workers Paid para contornar essa restrição.
+- Se o processamento ultrapassar o limite gratuito, otimizar o código ou dividir/reduzir o trabalho.
 
 ## Endpoints iniciais
 
