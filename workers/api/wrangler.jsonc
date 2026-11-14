@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "schrsistemas-api",
+  "name": "schrsistemas",
   "main": "src/index.ts",
   "compatibility_date": "2026-11-14",
   "workers_dev": true,
