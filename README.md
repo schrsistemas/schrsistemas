@@ -88,3 +88,25 @@ Evoluir para:
 - Arquitetura de sistemas
 - Automação inteligente com IA
 - Criação de produtos próprios (SaaS)
+
+---
+
+## 🌐 Portal institucional
+
+O portal público da Schr Sistemas está sendo desenvolvido em `site/`.
+
+- Domínio: https://schrsistemas.com
+- Aplicação: Next.js + TypeScript + Material UI
+- Hospedagem planejada: Cloudflare Pages
+- Publicação: integração GitHub na branch `main`
+- Estratégia: exportação estática para manter custo operacional zero
+
+### Documentação
+
+- [Diretrizes para agentes de IA](AGENTS.md)
+- [Arquitetura](docs/ARCHITECTURE.md)
+- [Publicação Cloudflare](docs/DEPLOY-CLOUDFLARE.md)
+- [Manutenção do conteúdo](docs/CONTENT-MAINTENANCE.md)
+- [Instruções da aplicação web](site/README.md)
+
+O site apresenta a marca Schr Sistemas e o portfólio profissional de Daniel Schroeder. A publicação no domínio depende da configuração da conta Cloudflare e da validação DNS; não considerar o domínio publicado até concluir essa etapa.
