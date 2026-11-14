@@ -65,6 +65,14 @@ Contrato detalhado: [API-CONTRACT.md](./API-CONTRACT.md).
 
 A arquitetura inicial não provisiona banco, filas, storage ou serviços pagos. O Pages serve conteúdo estático; a API usa o plano gratuito de Workers enquanto estiver dentro dos limites publicados pela Cloudflare.
 
+Limites atuais documentados para Workers Free:
+- 100.000 requisições por dia por conta;
+- 10 ms de CPU por invocação HTTP;
+- 128 MB de memória;
+- até 50 subrequests por invocação.
+
+Esses limites são compartilhados conforme as regras do plano e podem mudar. Ao exceder o limite diário, o Worker pode retornar erro 1027. Não habilitar Workers Paid nem qualquer recurso que gere cobrança para contornar limites.
+
 Antes de ampliar o uso, conferir:
 - limites diários de requisições e CPU do Workers Free;
 - limites de build e arquivos do Pages;
