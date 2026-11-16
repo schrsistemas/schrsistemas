@@ -243,7 +243,7 @@ Implementação inicial registrada na branch de evolução:
 - Teste HTTP de criação e renderização.
 - Documentação dos endpoints, persistência e exemplos.
 
-**Validação pendente:** aguardar o GitHub Actions no head atualizado da branch. A funcionalidade não deve ser considerada validada antes de `npm run check`, `npm test` e `npm run build` concluírem com sucesso.
+**Validação concluída:** GitHub Actions run 43979233682 executou com sucesso `npm install`, `npm run check`, `npm test` e `npm run build`. A implementação inicial do Prompt Studio está validada pelo CI.
 
 ## 10.3. Próxima entrega técnica — Knowledge Engine
 
