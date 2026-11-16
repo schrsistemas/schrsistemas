@@ -94,3 +94,23 @@ O conteúdo documental é persistido intencionalmente no banco local. O isolamen
 ## Testes
 
 A suíte cobre criação de fontes, chunking/offsets, hash, idempotência, atualização por identificador externo, isolamento entre projetos, validação de formato/conteúdo e rotas HTTP.
+
+## Busca lexical local (Retrieval Engine inicial)
+
+O índice FTS5 é criado quando a biblioteca SQLite efetivamente oferece o módulo FTS5. A tabela `knowledge_chunks_fts` indexa conteúdo de chunks e mantém sincronização por triggers de INSERT, UPDATE e DELETE. Uma rotina de reconciliação inicial adiciona chunks existentes que ainda não estejam no índice.
+
+### GET /v1/knowledge/search
+
+Autenticado. Parâmetros:
+- `q`: obrigatório, 2-200 caracteres. Termos são tokenizados e combinados com AND.
+- `source_id`: opcional; restringe a uma fonte do projeto autenticado.
+- `document_id`: opcional; restringe a um documento do projeto autenticado.
+- `limit`: opcional, inteiro de 1 a 50 (padrão 10).
+
+Exemplo: `GET /v1/knowledge/search?q=manutenção%20motor&limit=10`
+
+A resposta identifica `strategy: lexical_fts5` e `semantic: false`. Cada resultado contém identificadores de chunk, documento e fonte, título, nome da fonte, conteúdo, offsets, hash e score BM25. O score é uma ordenação lexical do FTS5, não uma probabilidade nem uma medida semântica.
+
+Se FTS5 não estiver disponível na compilação SQLite local, a rota retorna `KNOWLEDGE_SEARCH_UNAVAILABLE` (503). Não há fallback silencioso que apresente busca simples como FTS5.
+
+A consulta combina todos os termos encontrados; não implementa expansão de sinônimos, embeddings, reranking semântico ou RAG.
