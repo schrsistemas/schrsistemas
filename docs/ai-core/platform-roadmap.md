@@ -66,10 +66,10 @@ Persistência e infraestrutura local
 |---|---|---|
 | Core Gateway | API, autenticação, políticas e ciclo de requisição | Parcialmente implementado |
 | LLM Runtime | Seleção e execução por contrato de provider | Registry implementado; CI verde |
-| Prompt Studio | Templates, variáveis, versões e composição de prompts | Implementação inicial; aguardando CI |
+| Prompt Studio | Templates, variáveis, versões e composição de prompts | Implementação inicial; CI aprovado |
 | NLP Engine | Normalização, classificação e utilitários de texto | Planejado |
-| Knowledge Engine | Fontes, documentos, metadados e ciclo de ingestão | Implementação inicial; aguardando CI |
-| Retrieval/RAG Engine | Chunking, indexação, recuperação e contexto com fontes | Planejado |
+| Knowledge Engine | Fontes, documentos, metadados e ciclo de ingestão | Implementação inicial; CI aprovado |
+| Retrieval/RAG Engine | Chunking, indexação, recuperação e contexto com fontes | Busca lexical FTS5 inicial; CI pendente |
 | Embedding Runtime | Contrato de embeddings e adaptadores locais/mock | Planejado |
 | Agent Runtime | Execução controlada de planos e ferramentas | Planejado |
 | Tool Registry | Registro, schemas, permissões e execução de ferramentas | Planejado |
@@ -267,3 +267,18 @@ Começar por texto simples e Markdown. Avaliar PDF/DOCX e dependências separada
 - Chamar busca lexical de busca vetorial.
 - Tratar saída mock como resposta de IA real.
 \n\n## 10.4. Progresso da Etapa 2 — Knowledge Engine\n\nImplementação inicial adicionada à branch `feature/schr-ai-platform-roadmap`:\n- `knowledge_sources`, `knowledge_documents` e `knowledge_chunks` no SQLite.\n- Serviço local para criação/listagem de fontes, ingestão e consulta de documentos.\n- Suporte inicial a texto simples e Markdown enviados no JSON.\n- Normalização de quebras de linha, remoção de NUL e normalização Unicode NFC.\n- Hash SHA-256 do conteúdo normalizado e dos chunks.\n- Chunking de 1.200 unidades UTF-16 com overlap de 150 e offsets rastreáveis.\n- Idempotência para conteúdo repetido e atualização/versionamento por `external_id`.\n- Rotas HTTP autenticadas e isolamento por projeto.\n- Testes de serviço e integração HTTP.\n\n**Validação concluída:** GitHub Actions run 43980568753 executou `npm install`, `npm run check`, `npm test` e `npm run build` com sucesso.\n
+## 10.5. Progresso da Etapa 3 — Retrieval Engine
+
+Implementação inicial de recuperação lexical local:
+- Índice SQLite FTS5 sobre o conteúdo dos chunks.
+- Triggers de INSERT, UPDATE e DELETE para manter o índice sincronizado.
+- Reconciliação de chunks já persistidos na inicialização.
+- Endpoint autenticado `GET /v1/knowledge/search`.
+- Consulta AND de termos, limite configurável e filtros por fonte/documento.
+- Ranking BM25 e retorno de chunk, documento, fonte, conteúdo, offsets e hash.
+- Resposta identifica explicitamente `strategy: lexical_fts5` e `semantic: false`.
+- Se FTS5 não estiver disponível na build SQLite local, a API retorna 503 tipado; não mascara a indisponibilidade como busca semântica ou FTS.
+
+**Limites:** sem embeddings, sinônimos, reranking semântico, VectorStore ou geração RAG nesta etapa.
+
+**Validação:** aguardando CI do head atualizado.
