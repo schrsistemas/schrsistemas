@@ -1,6 +1,7 @@
 import { createServer } from "node:http";
 import { randomUUID, createHash, timingSafeEqual } from "node:crypto";
 import type { IncomingMessage, ServerResponse } from "node:http";
+import { pathToFileURL } from "node:url";
 import type Database from "better-sqlite3";
 import { loadConfig } from "./config.js";
 import { openDatabase } from "./database.js";
@@ -208,7 +209,7 @@ export function createAiCoreServer(deps: Dependencies) {
   });
 }
 
-if (process.env.NODE_ENV !== "test") {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const config = loadConfig();
   const db = openDatabase(config.databasePath, config.projectId, config.projectName, config.apiKey);
   const server = createAiCoreServer({
