@@ -47,6 +47,21 @@ test("HTTP gateway enforces auth, project scope and returns mock completion", as
   assert.match(result.output, /MOCK PROVIDER/);
   assert.ok(result.usage.total_tokens > 0);
 
+  const unsupportedModel = await fetch(base + "/v1/chat/completions", {
+    method: "POST",
+    headers: {"content-type":"application/json","x-api-key":apiKey},
+    body: JSON.stringify({project:"pescaradar",model:"unknown-model",input:"não deve executar"})
+  });
+  assert.equal(unsupportedModel.status, 400);
+  const unsupportedBody = await unsupportedModel.json() as {error:{code:string}};
+  assert.equal(unsupportedBody.error.code, "MODEL_NOT_AVAILABLE");
+
+  const models = await fetch(base + "/v1/models", {headers:{"x-api-key":apiKey}});
+  assert.equal(models.status, 200);
+  const modelList = await models.json() as {data:Array<{id:string;enabled:boolean}>;disabled:Array<{provider:string;enabled:boolean}>};
+  assert.deepEqual(modelList.data.map((model) => model.id), ["schr-mock-v1"]);
+  assert.equal(modelList.disabled.find((model) => model.provider === "openai")?.enabled, false);
+
   const usage = await fetch(base + "/v1/usage", {headers:{"x-api-key":apiKey}});
   assert.equal(usage.status, 200);
   const totals = await usage.json() as {data:{requests:number}};
