@@ -9,6 +9,14 @@ import { createDefaultProviderRegistry } from "./providers/default-provider-regi
 import type { ProviderRegistry } from "./providers/provider-registry.js";
 import { validateChatRequest } from "./validation.js";
 import type { ChatRequest } from "./types.js";
+import {
+  addPromptVersion,
+  createPrompt,
+  getPrompt,
+  listPrompts,
+  PromptServiceError,
+  renderPrompt
+} from "./prompts/prompt-service.js";
 
 interface Dependencies {
   db: Database.Database;
@@ -32,6 +40,22 @@ function send(res: ServerResponse, status: number, body: unknown): void {
     "referrer-policy": "no-referrer"
   });
   res.end(JSON.stringify(body));
+}
+
+function sendPromptError(res: ServerResponse, error: unknown, id: string): void {
+  if (error instanceof PromptServiceError) {
+    send(res, error.status, { error: { code: error.code, message: error.message, request_id: id } });
+    return;
+  }
+  if (error instanceof SyntaxError) {
+    send(res, 400, { error: { code: "INVALID_JSON", message: "Body must be valid JSON.", request_id: id } });
+    return;
+  }
+  if (error instanceof RangeError) {
+    send(res, 413, { error: { code: "PAYLOAD_TOO_LARGE", message: "Request body exceeds configured limit.", request_id: id } });
+    return;
+  }
+  send(res, 500, { error: { code: "PROMPT_INTERNAL_ERROR", message: "Prompt operation failed.", request_id: id } });
 }
 
 function requestId(): string {
@@ -121,6 +145,53 @@ export function createAiCoreServer(deps: Dependencies) {
         "SELECT COUNT(*) AS requests, COALESCE(SUM(input_tokens),0) AS input_tokens, COALESCE(SUM(output_tokens),0) AS output_tokens, COALESCE(SUM(total_tokens),0) AS total_tokens FROM ai_requests WHERE project_id = ? AND status = 'completed'"
       ).get(auth.id) as { requests: number; input_tokens: number; output_tokens: number; total_tokens: number };
       send(res, 200, { data: row, note: "Mock token counts are estimates, not billable provider usage." });
+      return;
+    }
+
+    if (req.method === "GET" && url.pathname === "/v1/prompts") {
+      send(res, 200, { data: listPrompts(deps.db, auth.id) });
+      return;
+    }
+
+    if (req.method === "POST" && url.pathname === "/v1/prompts") {
+      try {
+        const body = await readJson(req, deps.maxRequestBytes);
+        send(res, 201, { data: createPrompt(deps.db, auth.id, body) });
+      } catch (error) {
+        sendPromptError(res, error, id);
+      }
+      return;
+    }
+
+    const promptVersionMatch = url.pathname.match(/^\/v1\/prompts\/([a-zA-Z0-9_-]+)\/versions$/);
+    if (req.method === "POST" && promptVersionMatch) {
+      try {
+        const body = await readJson(req, deps.maxRequestBytes);
+        send(res, 201, { data: addPromptVersion(deps.db, auth.id, promptVersionMatch[1] ?? "", body) });
+      } catch (error) {
+        sendPromptError(res, error, id);
+      }
+      return;
+    }
+
+    const promptRenderMatch = url.pathname.match(/^\/v1\/prompts\/([a-zA-Z0-9_-]+)\/render$/);
+    if (req.method === "POST" && promptRenderMatch) {
+      try {
+        const body = await readJson(req, deps.maxRequestBytes);
+        send(res, 200, { data: renderPrompt(deps.db, auth.id, promptRenderMatch[1] ?? "", body) });
+      } catch (error) {
+        sendPromptError(res, error, id);
+      }
+      return;
+    }
+
+    const promptMatch = url.pathname.match(/^\/v1\/prompts\/([a-zA-Z0-9_-]+)$/);
+    if (req.method === "GET" && promptMatch) {
+      try {
+        send(res, 200, { data: getPrompt(deps.db, auth.id, promptMatch[1] ?? "") });
+      } catch (error) {
+        sendPromptError(res, error, id);
+      }
       return;
     }
 
