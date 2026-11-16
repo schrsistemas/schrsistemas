@@ -114,3 +114,17 @@ A resposta identifica `strategy: lexical_fts5` e `semantic: false`. Cada resulta
 Se FTS5 não estiver disponível na compilação SQLite local, a rota retorna `KNOWLEDGE_SEARCH_UNAVAILABLE` (503). Não há fallback silencioso que apresente busca simples como FTS5.
 
 A consulta combina todos os termos encontrados; não implementa expansão de sinônimos, embeddings, reranking semântico ou RAG.
+
+
+## Context Builder — pacote RAG sem geração
+
+O endpoint autenticado POST /v1/knowledge/context combina a recuperação lexical FTS5 com a montagem determinística de contexto. Não executa LLM.
+
+- Ordena resultados pelo score BM25 ascendente e aplica limite de resultados.
+- Remove intervalos já cobertos de chunks do mesmo documento, preservando offsets UTF-16 da origem.
+- Aplica orçamento de caracteres e de tokens estimados; um segmento pode ser truncado para caber no orçamento.
+- Retorna referências com IDs de chunk/documento/fonte, título, nome da fonte, hash e offsets exatos do segmento incluído.
+- Identifica estratégia como lexical_fts5_context e semantic: false.
+- Estima tokens como ceil(context_utf16_chars / 4); é uma aproximação operacional, não tokenizer de modelo.
+
+O pacote de contexto é evidência de quais trechos foram selecionados, não prova de que uma resposta gerada por modelo esteja correta. A geração RAG e a validação de groundedness permanecem fora desta etapa.
