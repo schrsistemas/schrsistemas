@@ -7,7 +7,11 @@ SQLite via better-sqlite3. Arquivo padrão: workers/ai-core/data/ai-core.sqlite 
 - api_keys: id, project_id, key_hash, label, status, created_at.
 - ai_requests: metadados operacionais de execução, estimativas de tokens, duração e idempotência; sem prompt/resposta.
 - prompt_templates: templates nomeados por projeto, descrição, status e timestamps.
-- prompt_template_versions: versões imutáveis de cada template, corpo, variáveis declaradas em JSON e timestamp.\n- knowledge_sources: fontes documentais isoladas por projeto.\n- knowledge_documents: texto normalizado, formato, SHA-256, versão e identificador externo opcional.\n- knowledge_chunks: segmentos com índice, offsets UTF-16, hash e vínculos de origem.
+- prompt_template_versions: versões imutáveis de cada template, corpo, variáveis declaradas em JSON e timestamp.
+- knowledge_sources: fontes documentais isoladas por projeto.
+- knowledge_documents: texto normalizado, formato, SHA-256, versão e identificador externo opcional.
+- knowledge_chunks: segmentos com índice, offsets UTF-16, hash e vínculos de origem.
+- knowledge_chunks_fts: índice lexical FTS5 de chunks, com sincronização por triggers; criado apenas quando FTS5 está disponível no SQLite local.
 
 ## Migrações
 As tabelas são criadas com `CREATE TABLE IF NOT EXISTS` durante a inicialização. A criação das tabelas de Prompt Studio e Knowledge Engine não apaga nem reescreve dados anteriores.
