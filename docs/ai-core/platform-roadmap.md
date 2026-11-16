@@ -282,3 +282,19 @@ Implementação inicial de recuperação lexical local:
 **Limites:** sem embeddings, sinônimos, reranking semântico, VectorStore ou geração RAG nesta etapa.
 
 **Validação:** aguardando CI do head atualizado.
+
+
+## 10.6. Progresso da Etapa 4 — RAG Context Builder
+
+Implementação inicial na branch de evolução:
+- Serviço knowledge/context-builder.ts desacoplado de providers.
+- Seleção determinística por score BM25 ascendente.
+- Deduplicação de intervalos sobrepostos por documento, mantendo offsets UTF-16.
+- Orçamento configurável de caracteres e tokens estimados, com indicador truncated.
+- Citações vinculadas a chunk, documento, fonte, hash e offsets do trecho efetivamente incluído.
+- Endpoint autenticado POST /v1/knowledge/context, que executa retrieval lexical e monta pacote de contexto sem invocar LLM.
+- Testes unitários de ranking, sobreposição, orçamento, contexto vazio, offsets e validação; teste HTTP integrado.
+
+Limites: estimativa de tokens por ceil(chars / 4), não tokenizer real; estratégia permanece lexical (semantic: false); nenhuma geração RAG ou alegação de groundedness foi implementada.
+
+Validação: CI desta etapa pendente.
