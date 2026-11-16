@@ -297,4 +297,4 @@ Implementação inicial na branch de evolução:
 
 Limites: estimativa de tokens por ceil(chars / 4), não tokenizer real; estratégia permanece lexical (semantic: false); nenhuma geração RAG ou alegação de groundedness foi implementada.
 
-Validação: CI desta etapa pendente.
+Validação concluída: GitHub Actions run 43983137586 executou com sucesso npm install, npm run check, npm test e npm run build.
