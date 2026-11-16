@@ -11,7 +11,7 @@ function invalid(message: string): never {
 }
 function buildMatchQuery(query: string): string {
   const terms = query.match(/[\p{L}\p{N}_]+/gu) ?? [];
-  const unique = [...new Set(terms.map((term) => term.toLocaleLowerCase("und"))];
+  const unique = [...new Set(terms.map((term) => term.toLocaleLowerCase("und")))];
   if (unique.length === 0) return invalid("q must contain at least one searchable word or number.");
   return unique.map((term) => '"' + term.replaceAll('"', '""') + '"').join(" AND ");
 }
