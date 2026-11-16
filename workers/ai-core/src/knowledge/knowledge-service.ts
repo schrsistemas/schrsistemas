@@ -77,7 +77,8 @@ export function getKnowledgeSource(db: Database.Database, projectId: string, sou
 export function ingestKnowledgeDocument(db: Database.Database, projectId: string, value: unknown) {
   const input = asObject(value);
   if (typeof input.source_id !== "string" || input.source_id.length < 1) return invalid("source_id is required.");
-  if (typeof input.title !== "string" || input.title.trim().length < 1 || input.title.length > 240) return invalid("title must contain 1-240 characters.");
+  if (typeof input.title !== "string" || title.length < 1 || input.title.length > 240) return invalid("title must contain 1-240 characters.");
+  const title = title;
   if (typeof input.content !== "string" || input.content.length < 1 || input.content.length > 200000) return invalid("content must contain 1-200000 characters.");
   const format = input.format === undefined ? "text" : input.format;
   if (format !== "text" && format !== "markdown") return invalid("format must be text or markdown.");
@@ -99,10 +100,10 @@ export function ingestKnowledgeDocument(db: Database.Database, projectId: string
     if (existing) {
       db.prepare("DELETE FROM knowledge_chunks WHERE document_id=? AND project_id=?").run(documentId, projectId);
       db.prepare("UPDATE knowledge_documents SET title=?,format=?,content=?,content_hash=?,version=?,chunk_count=?,updated_at=CURRENT_TIMESTAMP WHERE id=? AND project_id=?")
-        .run(input.title.trim(), format, content, contentHash, version, chunks.length, documentId, projectId);
+        .run(title, format, content, contentHash, version, chunks.length, documentId, projectId);
     } else {
       db.prepare("INSERT INTO knowledge_documents(id,source_id,project_id,external_id,title,format,content,content_hash,version,chunk_count) VALUES(?,?,?,?,?,?,?,?,?,?)")
-        .run(documentId, input.source_id, projectId, externalId, input.title.trim(), format, content, contentHash, version, chunks.length);
+        .run(documentId, input.source_id, projectId, externalId, title, format, content, contentHash, version, chunks.length);
     }
     const insert = db.prepare("INSERT INTO knowledge_chunks(id,document_id,source_id,project_id,chunk_index,content,start_offset,end_offset,content_hash) VALUES(?,?,?,?,?,?,?,?,?)");
     for (const chunk of chunks) insert.run(chunk.id, documentId, input.source_id, projectId, chunk.chunk_index, chunk.content, chunk.start_offset, chunk.end_offset, chunk.content_hash);
@@ -112,7 +113,7 @@ export function ingestKnowledgeDocument(db: Database.Database, projectId: string
   return {
     id: documentId,
     source_id: input.source_id,
-    title: input.title.trim(),
+    title: title,
     format,
     content_hash: contentHash,
     version,
