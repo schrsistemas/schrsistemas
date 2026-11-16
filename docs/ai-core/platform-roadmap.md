@@ -1,0 +1,226 @@
+# Schr AI Platform — Roadmap de evolução
+
+**Versão:** 0.1  
+**Status:** planejamento técnico; não representa funcionalidades implementadas.  
+**Escopo:** evolução local-first do Schr AI Core, sem dependência de curso, material pago ou provedor comercial.
+
+## 1. Visão do produto
+
+O Schr AI deve ser um ecossistema próprio de inteligência artificial, composto por um núcleo estável e módulos independentes. O núcleo fornece identidade de requisição, autenticação, políticas, contratos, persistência operacional e observabilidade. Os módulos especializados fornecem capacidades de linguagem, conhecimento, recuperação, agentes e avaliação.
+
+A matriz de tecnologias que orienta a visão é: LLM, PLN, Transformers, Prompt Engineering, agentes, orquestração, RAG, embeddings, bancos vetoriais, multimodalidade, avaliação, mitigação de alucinações, governança e MLOps. Esses termos são direcionadores de produto, não requisitos para reproduzir um curso.
+
+## 2. Princípios não negociáveis
+
+1. **Custo zero obrigatório:** nenhuma funcionalidade essencial pode exigir API paga, assinatura ou infraestrutura paga.
+2. **Local-first:** preferir execução local e persistência local.
+3. **Mock explícito:** mocks servem para contratos, testes e desenvolvimento; nunca devem ser apresentados como inferência real.
+4. **Provedores desacoplados:** nenhum módulo pode depender diretamente de um fabricante.
+5. **OpenAI desabilitado:** o adaptador existente permanece desabilitado e não realiza chamadas externas.
+6. **Evolução incremental:** cada módulo tem contrato, testes, documentação e critérios de aceitação.
+7. **Sem deploy automático:** este roadmap não autoriza publicação, alteração de DNS, Cloudflare, Workers ou produção.
+8. **Sem segredos no repositório:** chaves e credenciais não entram em commits, exemplos reais ou logs.
+9. **Sem expansão prematura:** não adicionar dependências pesadas antes de validar necessidade, licença, compatibilidade e custo operacional.
+
+## 3. Estado conhecido do núcleo
+
+A implementação inicial em `workers/ai-core` já contém:
+
+- servidor HTTP nativo em Node.js/TypeScript;
+- contrato `LlmProvider`;
+- `MockProvider` funcional;
+- adaptador OpenAI bloqueado;
+- SQLite via `better-sqlite3`;
+- projetos, hashes de API keys e metadados de requisições;
+- autenticação `X-API-Key`;
+- validação de entrada, limite de corpo, rate limit em memória e idempotência;
+- endpoints de health, modelos, chat completions, uso e consulta de requisição;
+- testes e workflow de validação.
+
+Limitações registradas na arquitetura atual: um projeto por instância; rate limit volátil em memória; ausência de RAG, embeddings, agentes, streaming e tool calling; ausência de backup automático. O servidor atualmente instancia o MockProvider diretamente no fluxo de chat. A evolução deve primeiro eliminar esse acoplamento sem quebrar o comportamento existente.
+
+## 4. Arquitetura-alvo
+
+Separar o produto em camadas com dependências apontando para contratos internos:
+
+```text
+Aplicações clientes
+       |
+API / Gateway (auth, validação, limites, idempotência)
+       |
+Application Core (casos de uso, políticas, tracing)
+       |
+Contratos internos
+  |       |        |        |         |
+LLM    Prompts   Knowledge Agents   Evaluation
+  |       |        |        |         |
+Providers / Adapters / Local runtimes
+       |
+Persistência e infraestrutura local
+(SQLite, arquivos, índice de busca, métricas)
+```
+
+### Módulos de produto
+
+| Módulo | Responsabilidade | Estado |
+|---|---|---|
+| Core Gateway | API, autenticação, políticas e ciclo de requisição | Parcialmente implementado |
+| LLM Runtime | Seleção e execução por contrato de provider | Contrato inicial; seleção ainda precisa ser desacoplada |
+| Prompt Studio | Templates, variáveis, versões e composição de prompts | Planejado |
+| NLP Engine | Normalização, classificação e utilitários de texto | Planejado |
+| Knowledge Engine | Fontes, documentos, metadados e ciclo de ingestão | Planejado |
+| Retrieval/RAG Engine | Chunking, indexação, recuperação e contexto com fontes | Planejado |
+| Embedding Runtime | Contrato de embeddings e adaptadores locais/mock | Planejado |
+| Agent Runtime | Execução controlada de planos e ferramentas | Planejado |
+| Tool Registry | Registro, schemas, permissões e execução de ferramentas | Planejado |
+| Evaluation Engine | Datasets, avaliações, regressão e evidências | Planejado |
+| Governance | Auditoria, políticas, retenção e proveniência | Planejado |
+| Multimodal Gateway | Contratos de entrada/saída para texto, imagem e áudio | Planejado |
+| Observability/MLOps | Logs estruturados, métricas, health e testes | Inicial; ampliar gradualmente |
+
+## 5. Contratos de domínio propostos
+
+Os contratos abaixo são objetivos arquiteturais; não devem ser tratados como código já existente.
+
+- `LlmProvider`: gerar texto a partir de uma entrada normalizada e retornar saída, modelo, uso e metadados do provider.
+- `EmbeddingProvider`: transformar textos em vetores; declarar dimensão, modelo e proveniência.
+- `VectorStore`: inserir, remover e consultar vetores com filtros e metadados.
+- `DocumentParser`: extrair conteúdo e metadados de formatos suportados.
+- `Chunker`: dividir conteúdo em segmentos rastreáveis à origem.
+- `Retriever`: recuperar trechos relevantes e devolver pontuação, origem e estratégia usada.
+- `PromptRepository`: armazenar templates versionados e recuperar uma versão imutável.
+- `Tool`: declarar nome, descrição, schema de entrada, política de autorização e executor.
+- `AgentRuntime`: executar etapas limitadas, com orçamento de passos, timeout e trilha de auditoria.
+- `Evaluator`: executar critérios reproduzíveis sobre datasets e resultados.
+- `AuditSink`: registrar eventos de governança sem armazenar conteúdo sensível por padrão.
+
+Todos os contratos devem definir erros tipados, limites, cancelamento quando aplicável e metadados de rastreabilidade. Dados de prompt e resposta não devem ser persistidos por padrão.
+
+## 6. Estratégia de armazenamento e busca
+
+Manter SQLite como persistência operacional inicial. Separar claramente:
+
+- metadados e configurações;
+- documentos e referências a arquivos;
+- chunks e metadados de origem;
+- índices de recuperação;
+- vetores e metadados do modelo de embedding;
+- eventos de execução e auditoria.
+
+Não assumir que SQLite puro fornece busca vetorial. A primeira entrega de Knowledge/RAG pode oferecer busca textual local (por exemplo, FTS5, após validar suporte na compilação SQLite utilizada). Busca vetorial real exige um backend vetorial compatível ou extensão local validada. Não rotular busca lexical como busca semântica.
+
+Embeddings mock podem validar contratos e fluxo, mas não devem ser usados para alegar qualidade semântica. Um adaptador de embeddings local só será escolhido após avaliar tamanho do modelo, licença, CPU/RAM, compatibilidade Node, download necessário e operação offline.
+
+## 7. Roadmap de implementação
+
+### Etapa 0 — Fundação e desacoplamento do Core
+- Injetar provider no caso de uso de chat, em vez de instanciá-lo dentro do handler HTTP.
+- Criar composição explícita de dependências.
+- Padronizar erros, IDs de correlação e metadados de execução.
+- Preservar endpoints e formato de resposta existentes.
+- Cobrir seleção de provider e falhas com testes.
+
+**Aceitação:** testes existentes passam; Mock continua sendo o único provider ativo; OpenAI segue bloqueado e sem HTTP externo.
+
+### Etapa 1 — Prompt Studio
+- Criar templates com identificador, nome, descrição, versão e status.
+- Suportar variáveis declaradas e validação de variáveis obrigatórias.
+- Separar system/instructions, contexto e input do usuário.
+- Permitir composição determinística e renderização local.
+- Persistir versões imutáveis no SQLite.
+- Criar testes de renderização, validação e versionamento.
+
+**Aceitação:** criar, consultar, versionar e renderizar prompts sem chamada a LLM.
+
+### Etapa 2 — Knowledge Engine e ingestão local
+- Registrar fontes e documentos.
+- Implementar pipeline de parsing por adaptadores.
+- Normalizar texto e metadados.
+- Dividir documentos em chunks com referência à origem e posição.
+- Controlar hash, versão e reprocessamento idempotente.
+- Começar por formatos simples e bibliotecas open source avaliadas.
+
+**Aceitação:** ingestão repetível, rastreável e testada; nenhum serviço remoto obrigatório.
+
+### Etapa 3 — Retrieval e RAG
+- Disponibilizar busca lexical local primeiro.
+- Definir interfaces de embeddings e VectorStore.
+- Adicionar backend vetorial somente após avaliação técnica.
+- Recuperar trechos com identificadores de fonte.
+- Montar contexto com limites explícitos.
+- Devolver fontes utilizadas junto da resposta.
+- Avaliar recuperação separadamente da geração.
+
+**Aceitação:** demonstrar quais fontes sustentam cada trecho recuperado; busca lexical e vetorial são identificadas corretamente.
+
+### Etapa 4 — Agent Runtime e Tool Registry
+- Definir ferramentas com JSON Schema ou contrato equivalente.
+- Aplicar allowlist por projeto.
+- Limitar passos, tempo, tamanho de entrada/saída e orçamento.
+- Exigir autorização explícita para ferramentas com efeitos externos.
+- Registrar plano, chamadas, resultados e falhas.
+- Começar com ferramentas locais sem efeitos destrutivos.
+
+**Aceitação:** agente não consegue invocar ferramenta não registrada ou exceder limites; execução reproduzível com MockProvider.
+
+### Etapa 5 — NLP e multimodal
+- Criar serviços de normalização e classificação com contratos próprios.
+- Definir payloads multimodais sem acoplar ao provider.
+- Tratar imagem e áudio como capacidades opcionais.
+- Implementar somente adaptadores locais que tenham dependências e requisitos de hardware documentados.
+- Manter mocks apenas para teste de contrato.
+
+**Aceitação:** capacidades indisponíveis são informadas como não suportadas; mocks nunca são apresentados como processamento real.
+
+### Etapa 6 — Evaluation, Governance e MLOps
+- Criar datasets versionados de avaliação.
+- Medir latência, taxa de erro, custo externo (zero por política), uso estimado e qualidade.
+- Criar avaliações de groundedness e cobertura de fontes para RAG.
+- Registrar versão de prompt, provider, modelo e fontes sem armazenar conteúdo sensível por padrão.
+- Ampliar CI com testes de regressão e análise de dependências.
+- Documentar backup, restauração e migrações.
+
+**Aceitação:** resultados reproduzíveis, métricas com definição explícita e trilha de proveniência.
+
+## 8. Critérios transversais de qualidade
+
+Cada módulo novo deve entregar:
+
+1. objetivo e limites documentados;
+2. contrato tipado;
+3. implementação real ou mock explicitamente identificado;
+4. persistência e migração reversível quando necessária;
+5. testes unitários e de integração;
+6. validação de entradas e limites de recursos;
+7. logs sem segredos ou conteúdo sensível por padrão;
+8. documentação de instalação e uso;
+9. avaliação de dependências, licença e custo;
+10. nenhum deploy ou alteração de produção.
+
+## 9. Decisões que exigem validação antes de implementação
+
+- Suporte de FTS5 na versão efetiva de SQLite fornecida pelo `better-sqlite3`.
+- Backend vetorial local mais adequado e sua licença.
+- Runtime local de embeddings compatível com o hardware-alvo.
+- Bibliotecas de parsing de PDF, DOCX e outros formatos.
+- Modelo de isolamento multi-projeto e migração do modelo atual single-project.
+- Estratégia de backup, restauração e criptografia de dados locais.
+
+Não assumir disponibilidade de GPU. A primeira versão deve funcionar em CPU quando tecnicamente viável e documentar limitações de desempenho.
+
+## 10. Próxima entrega técnica
+
+A próxima implementação deve ser a **Etapa 0 — desacoplamento do LLM Runtime**. Ela reduz o acoplamento do handler HTTP ao MockProvider e estabelece o padrão de composição que será reutilizado pelos módulos seguintes.
+
+Não iniciar simultaneamente Prompt Studio, RAG e agentes. Primeiro estabilizar o ponto de extensão do provider e garantir regressão zero.
+
+## 11. Fora do escopo deste roadmap
+
+- Comprar ou reproduzir curso.
+- Exigir material acadêmico.
+- Ativar OpenAI ou qualquer API paga.
+- Fazer deploy.
+- Alterar DNS, Cloudflare Pages ou Workers existentes.
+- Construir funcionalidades multimodais artificiais sem runtime real.
+- Chamar busca lexical de busca vetorial.
+- Tratar saída mock como resposta de IA real.
