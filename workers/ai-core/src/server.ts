@@ -19,6 +19,9 @@ import {
 } from "./knowledge/knowledge-service.js";
 import { searchKnowledge } from "./knowledge/knowledge-search-service.js";
 import { buildKnowledgeContext } from "./knowledge/context-builder.js";
+import { MockEmbeddingProvider } from "./knowledge/embedding-provider.js";
+import type { EmbeddingProvider } from "./knowledge/embedding-provider.js";
+import { indexKnowledgeDocumentEmbeddings, listKnowledgeDocumentEmbeddings } from "./knowledge/embedding-service.js";
 import {
   addPromptVersion,
   createPrompt,
@@ -35,6 +38,8 @@ interface Dependencies {
   rateLimitMaxRequests: number;
   /** Registry injetável para composição local e testes. */
   providerRegistry?: ProviderRegistry;
+  /** Provider de embeddings injetável; o padrão é mock explicitamente simulado. */
+  embeddingProvider?: EmbeddingProvider;
 }
 
 interface AuthenticatedProject { id: string; }
@@ -134,6 +139,7 @@ async function readJson(req: IncomingMessage, maxBytes: number): Promise<unknown
 
 export function createAiCoreServer(deps: Dependencies) {
   const providers = deps.providerRegistry ?? createDefaultProviderRegistry();
+  const embeddingProvider = deps.embeddingProvider ?? new MockEmbeddingProvider();
 
   return createServer(async (req, res) => {
     const id = requestId();
@@ -233,6 +239,37 @@ export function createAiCoreServer(deps: Dependencies) {
           limit
         });
         send(res, 200, { data });
+      } catch (error) {
+        sendKnowledgeError(res, error, id);
+      }
+      return;
+    }
+
+    if (req.method === "POST" && url.pathname === "/v1/knowledge/embeddings/index") {
+      try {
+        const raw = await readJson(req, deps.maxRequestBytes);
+        if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
+          throw new KnowledgeServiceError("EMBEDDING_VALIDATION_ERROR", 400, "Request body must be a JSON object.");
+        }
+        const body = raw as Record<string, unknown>;
+        if (typeof body.document_id !== "string" || body.document_id.length === 0) {
+          throw new KnowledgeServiceError("EMBEDDING_VALIDATION_ERROR", 400, "document_id is required.");
+        }
+        const data = await indexKnowledgeDocumentEmbeddings(deps.db, auth.id, body.document_id, embeddingProvider);
+        send(res, 200, { data });
+      } catch (error) {
+        sendKnowledgeError(res, error, id);
+      }
+      return;
+    }
+
+    if (req.method === "GET" && url.pathname === "/v1/knowledge/embeddings") {
+      try {
+        const documentId = url.searchParams.get("document_id");
+        if (!documentId) {
+          throw new KnowledgeServiceError("EMBEDDING_VALIDATION_ERROR", 400, "document_id query parameter is required.");
+        }
+        send(res, 200, { data: listKnowledgeDocumentEmbeddings(deps.db, auth.id, documentId) });
       } catch (error) {
         sendKnowledgeError(res, error, id);
       }
