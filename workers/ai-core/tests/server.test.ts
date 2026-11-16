@@ -126,6 +126,26 @@ test("HTTP gateway enforces auth, project scope and returns mock completion", as
   assert.equal(searchPayload.data.results[0]?.document_id, documentPayload.data.id);
   assert.equal(searchPayload.data.results[0]?.source_id, sourcePayload.data.id);
   assert.match(searchPayload.data.results[0]?.content ?? "", /Conteúdo de teste/);
+  const knowledgeContext = await fetch(base + "/v1/knowledge/context", {
+    method: "POST",
+    headers: {"content-type":"application/json","x-api-key":apiKey},
+    body: JSON.stringify({query:"teste",limit:5,max_context_tokens:500,max_context_chars:2000})
+  });
+  assert.equal(knowledgeContext.status, 200);
+  const contextPayload = await knowledgeContext.json() as {
+    data: {
+      retrieval: {strategy:string;semantic:boolean};
+      context: {strategy:string;semantic:boolean;context:string;token_estimate:number;citations:Array<{chunk_id:string;document_id:string;source_id:string;start_offset:number;end_offset:number}>}
+    }
+  };
+  assert.equal(contextPayload.data.retrieval.strategy, "lexical_fts5");
+  assert.equal(contextPayload.data.context.strategy, "lexical_fts5_context");
+  assert.equal(contextPayload.data.context.semantic, false);
+  assert.match(contextPayload.data.context.context, /Conteúdo de teste/);
+  assert.equal(contextPayload.data.context.citations[0]?.document_id, documentPayload.data.id);
+  assert.equal(contextPayload.data.context.citations[0]?.source_id, sourcePayload.data.id);
+  assert.ok(contextPayload.data.context.token_estimate > 0);
+
 
   const usage = await fetch(base + "/v1/usage", {headers:{"x-api-key":apiKey}});
   assert.equal(usage.status, 200);
