@@ -146,7 +146,7 @@ Request JSON:
 }
 ```
 
-query é obrigatório (1-200 caracteres); filtros são opcionais; limit aceita 1-50 (padrão 10); max_context_tokens aceita 1-8000 (padrão 2000); max_context_chars aceita 1-32000 (padrão 8000). A rota retorna retrieval e context. O pacote contém selected_chunks, citations, context, truncated, limites e estimativa de tokens. Cada citação referencia chunk, documento, fonte, hash e offsets UTF-16 do segmento efetivamente incluído.
+query é obrigatório (2-200 caracteres); filtros são opcionais; limit aceita 1-50 (padrão 10); max_context_tokens aceita 1-8000 (padrão 2000); max_context_chars aceita 1-32000 (padrão 8000). A rota retorna retrieval e context. O pacote contém selected_chunks, citations, context, truncated, limites e estimativa de tokens. Cada citação referencia chunk, documento, fonte, hash e offsets UTF-16 do segmento efetivamente incluído.
 
 A estimativa é determinística: ceil(context_utf16_chars / 4). Não é contagem exata de tokenizer. Trechos sobrepostos do mesmo documento são subtraídos por intervalos de origem; a seleção respeita o menor score BM25 primeiro. Quando o orçamento termina no meio de um trecho, o segmento é truncado e truncated: true. Contexto vazio é permitido quando a busca não encontra resultados.
 
