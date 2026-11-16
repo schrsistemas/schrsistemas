@@ -85,6 +85,34 @@ test("HTTP gateway enforces auth, project scope and returns mock completion", as
   const renderedPayload = await promptRendered.json() as {data:{output:string}};
   assert.equal(renderedPayload.data.output, "Olá Daniel, seu protocolo é ABC-123.");
 
+  const knowledgeSourceResponse = await fetch(base + "/v1/knowledge/sources", {
+    method: "POST",
+    headers: {"content-type":"application/json","x-api-key":apiKey},
+    body: JSON.stringify({name:"Base documental"})
+  });
+  assert.equal(knowledgeSourceResponse.status, 201);
+  const sourcePayload = await knowledgeSourceResponse.json() as {data:{id:string}};
+  const knowledgeDocumentResponse = await fetch(base + "/v1/knowledge/documents", {
+    method: "POST",
+    headers: {"content-type":"application/json","x-api-key":apiKey},
+    body: JSON.stringify({
+      source_id: sourcePayload.data.id,
+      title: "Guia local",
+      format: "markdown",
+      content: "# Guia\\nConteúdo de teste"
+    })
+  });
+  assert.equal(knowledgeDocumentResponse.status, 201);
+  const documentPayload = await knowledgeDocumentResponse.json() as {data:{id:string;chunk_count:number}};
+  assert.equal(documentPayload.data.chunk_count, 1);
+  const knowledgeDetail = await fetch(base + "/v1/knowledge/documents/" + documentPayload.data.id, {
+    headers: {"x-api-key":apiKey}
+  });
+  assert.equal(knowledgeDetail.status, 200);
+  const knowledgeDetailPayload = await knowledgeDetail.json() as {data:{content:string;chunks:Array<{content:string}>}};
+  assert.equal(knowledgeDetailPayload.data.content, "# Guia\\nConteúdo de teste");
+  assert.equal(knowledgeDetailPayload.data.chunks[0]?.content, "# Guia\\nConteúdo de teste");
+
   const usage = await fetch(base + "/v1/usage", {headers:{"x-api-key":apiKey}});
   assert.equal(usage.status, 200);
   const totals = await usage.json() as {data:{requests:number}};
