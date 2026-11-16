@@ -127,3 +127,27 @@ A resposta retorna `strategy: "lexical_fts5"`, `semantic: false` e resultados co
 Erros: KNOWLEDGE_SEARCH_VALIDATION_ERROR 400; KNOWLEDGE_SEARCH_UNAVAILABLE 503 quando FTS5 não estiver disponível; KNOWLEDGE_SOURCE_NOT_FOUND 404; KNOWLEDGE_DOCUMENT_NOT_FOUND 404.
 
 A busca é lexical, com índice SQLite FTS5. Não é busca vetorial ou semântica.
+
+
+## RAG Context Builder — pacote de contexto local
+
+### POST /v1/knowledge/context
+Autenticado. Executa a busca lexical FTS5 e monta um pacote de contexto rastreável, sem chamar LLM ou provider.
+
+Request JSON:
+```json
+{
+  "query": "manutenção preventiva",
+  "source_id": "ks_...",
+  "document_id": "kd_...",
+  "limit": 10,
+  "max_context_tokens": 2000,
+  "max_context_chars": 8000
+}
+```
+
+query é obrigatório (1-200 caracteres); filtros são opcionais; limit aceita 1-50 (padrão 10); max_context_tokens aceita 1-8000 (padrão 2000); max_context_chars aceita 1-32000 (padrão 8000). A rota retorna retrieval e context. O pacote contém selected_chunks, citations, context, truncated, limites e estimativa de tokens. Cada citação referencia chunk, documento, fonte, hash e offsets UTF-16 do segmento efetivamente incluído.
+
+A estimativa é determinística: ceil(context_utf16_chars / 4). Não é contagem exata de tokenizer. Trechos sobrepostos do mesmo documento são subtraídos por intervalos de origem; a seleção respeita o menor score BM25 primeiro. Quando o orçamento termina no meio de um trecho, o segmento é truncado e truncated: true. Contexto vazio é permitido quando a busca não encontra resultados.
+
+Erros adicionais: KNOWLEDGE_CONTEXT_VALIDATION_ERROR 400. A busca continua sendo lexical (semantic: false); esta rota não gera resposta nem afirma groundedness de uma LLM.
