@@ -62,6 +62,29 @@ test("HTTP gateway enforces auth, project scope and returns mock completion", as
   assert.deepEqual(modelList.data.map((model) => model.id), ["schr-mock-v1"]);
   assert.equal(modelList.disabled.find((model) => model.provider === "openai")?.enabled, false);
 
+  const promptCreated = await fetch(base + "/v1/prompts", {
+    method: "POST",
+    headers: {"content-type":"application/json","x-api-key":apiKey},
+    body: JSON.stringify({
+      project: "pescaradar",
+      name: "Resposta de suporte",
+      body: "Olá {{customer}}, seu protocolo é {{protocol}}.",
+      variables: [{name:"customer",required:true},{name:"protocol",required:true}]
+    })
+  });
+  assert.equal(promptCreated.status, 201);
+  const promptPayload = await promptCreated.json() as {data:{id:string;version:{version:number}}};
+  assert.equal(promptPayload.data.version.version, 1);
+
+  const promptRendered = await fetch(base + "/v1/prompts/" + promptPayload.data.id + "/render", {
+    method: "POST",
+    headers: {"content-type":"application/json","x-api-key":apiKey},
+    body: JSON.stringify({variables:{customer:"Daniel",protocol:"ABC-123"}})
+  });
+  assert.equal(promptRendered.status, 200);
+  const renderedPayload = await promptRendered.json() as {data:{output:string}};
+  assert.equal(renderedPayload.data.output, "Olá Daniel, seu protocolo é ABC-123.");
+
   const usage = await fetch(base + "/v1/usage", {headers:{"x-api-key":apiKey}});
   assert.equal(usage.status, 200);
   const totals = await usage.json() as {data:{requests:number}};
