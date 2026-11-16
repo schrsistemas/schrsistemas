@@ -10,6 +10,14 @@ import type { ProviderRegistry } from "./providers/provider-registry.js";
 import { validateChatRequest } from "./validation.js";
 import type { ChatRequest } from "./types.js";
 import {
+  createKnowledgeSource,
+  getKnowledgeDocument,
+  ingestKnowledgeDocument,
+  KnowledgeServiceError,
+  listKnowledgeDocuments,
+  listKnowledgeSources
+} from "./knowledge/knowledge-service.js";
+import {
   addPromptVersion,
   createPrompt,
   getPrompt,
@@ -56,6 +64,22 @@ function sendPromptError(res: ServerResponse, error: unknown, id: string): void 
     return;
   }
   send(res, 500, { error: { code: "PROMPT_INTERNAL_ERROR", message: "Prompt operation failed.", request_id: id } });
+}
+
+function sendKnowledgeError(res: ServerResponse, error: unknown, id: string): void {
+  if (error instanceof KnowledgeServiceError) {
+    send(res, error.status, { error: { code: error.code, message: error.message, request_id: id } });
+    return;
+  }
+  if (error instanceof SyntaxError) {
+    send(res, 400, { error: { code: "INVALID_JSON", message: "Body must be valid JSON.", request_id: id } });
+    return;
+  }
+  if (error instanceof RangeError) {
+    send(res, 413, { error: { code: "PAYLOAD_TOO_LARGE", message: "Request body exceeds configured limit.", request_id: id } });
+    return;
+  }
+  send(res, 500, { error: { code: "KNOWLEDGE_INTERNAL_ERROR", message: "Knowledge operation failed.", request_id: id } });
 }
 
 function requestId(): string {
@@ -191,6 +215,51 @@ export function createAiCoreServer(deps: Dependencies) {
         send(res, 200, { data: getPrompt(deps.db, auth.id, promptMatch[1] ?? "") });
       } catch (error) {
         sendPromptError(res, error, id);
+      }
+      return;
+    }
+
+    if (req.method === "GET" && url.pathname === "/v1/knowledge/sources") {
+      send(res, 200, { data: listKnowledgeSources(deps.db, auth.id) });
+      return;
+    }
+
+    if (req.method === "POST" && url.pathname === "/v1/knowledge/sources") {
+      try {
+        const body = await readJson(req, deps.maxRequestBytes);
+        send(res, 201, { data: createKnowledgeSource(deps.db, auth.id, body) });
+      } catch (error) {
+        sendKnowledgeError(res, error, id);
+      }
+      return;
+    }
+
+    if (req.method === "GET" && url.pathname === "/v1/knowledge/documents") {
+      const sourceId = url.searchParams.get("source_id") ?? undefined;
+      try {
+        send(res, 200, { data: listKnowledgeDocuments(deps.db, auth.id, sourceId) });
+      } catch (error) {
+        sendKnowledgeError(res, error, id);
+      }
+      return;
+    }
+
+    if (req.method === "POST" && url.pathname === "/v1/knowledge/documents") {
+      try {
+        const body = await readJson(req, deps.maxRequestBytes);
+        send(res, 201, { data: ingestKnowledgeDocument(deps.db, auth.id, body) });
+      } catch (error) {
+        sendKnowledgeError(res, error, id);
+      }
+      return;
+    }
+
+    const knowledgeDocumentMatch = url.pathname.match(/^\/v1\/knowledge\/documents\/([a-zA-Z0-9_-]+)$/);
+    if (req.method === "GET" && knowledgeDocumentMatch) {
+      try {
+        send(res, 200, { data: getKnowledgeDocument(deps.db, auth.id, knowledgeDocumentMatch[1] ?? "") });
+      } catch (error) {
+        sendKnowledgeError(res, error, id);
       }
       return;
     }
