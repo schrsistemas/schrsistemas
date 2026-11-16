@@ -105,6 +105,7 @@ export function createPrompt(db: Database.Database, projectId: string, value: un
   if (typeof input.name !== "string" || input.name.trim().length < 1 || input.name.length > 120) {
     return invalid("name must contain 1-120 characters.");
   }
+  const name = input.name.trim();
   if (input.description !== undefined && (typeof input.description !== "string" || input.description.length > 500)) {
     return invalid("description must be a string of at most 500 characters.");
   }
@@ -113,12 +114,12 @@ export function createPrompt(db: Database.Database, projectId: string, value: un
   const transaction = db.transaction(() => {
     db.prepare(
       "INSERT INTO prompt_templates(id,project_id,name,description) VALUES(?,?,?,?)"
-    ).run(id, projectId, input.name.trim(), typeof input.description === "string" ? input.description : null);
+    ).run(id, projectId, name, typeof input.description === "string" ? input.description : null);
     const version = createVersion(db, id, projectId, versionInput.body, versionInput.variables);
     return version;
   });
   const version = transaction();
-  return { id, project_id: projectId, name: input.name.trim(), description: input.description ?? null, status: "active", version };
+  return { id, project_id: projectId, name, description: input.description ?? null, status: "active", version };
 }
 
 export function listPrompts(db: Database.Database, projectId: string) {
