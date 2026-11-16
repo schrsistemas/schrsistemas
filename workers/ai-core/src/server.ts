@@ -18,6 +18,7 @@ import {
   listKnowledgeSources
 } from "./knowledge/knowledge-service.js";
 import { searchKnowledge } from "./knowledge/knowledge-search-service.js";
+import { buildKnowledgeContext } from "./knowledge/context-builder.js";
 import {
   addPromptVersion,
   createPrompt,
@@ -232,6 +233,47 @@ export function createAiCoreServer(deps: Dependencies) {
           limit
         });
         send(res, 200, { data });
+      } catch (error) {
+        sendKnowledgeError(res, error, id);
+      }
+      return;
+    }
+
+    if (req.method === "POST" && url.pathname === "/v1/knowledge/context") {
+      try {
+        const raw = await readJson(req, deps.maxRequestBytes);
+        if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
+          throw new KnowledgeServiceError("KNOWLEDGE_CONTEXT_VALIDATION_ERROR", 400, "Request body must be a JSON object.");
+        }
+        const body = raw as Record<string, unknown>;
+        const sourceId = body.source_id;
+        const documentId = body.document_id;
+        const limit = body.limit ?? 10;
+        const maxContextTokens = body.max_context_tokens ?? 2000;
+        const maxContextChars = body.max_context_chars ?? 8000;
+        if (sourceId !== undefined && (typeof sourceId !== "string" || sourceId.length === 0)) {
+          throw new KnowledgeServiceError("KNOWLEDGE_CONTEXT_VALIDATION_ERROR", 400, "source_id must be a non-empty string.");
+        }
+        if (documentId !== undefined && (typeof documentId !== "string" || documentId.length === 0)) {
+          throw new KnowledgeServiceError("KNOWLEDGE_CONTEXT_VALIDATION_ERROR", 400, "document_id must be a non-empty string.");
+        }
+        if (!Number.isInteger(limit) || (limit as number) < 1 || (limit as number) > 50) {
+          throw new KnowledgeServiceError("KNOWLEDGE_CONTEXT_VALIDATION_ERROR", 400, "limit must be an integer from 1 to 50.");
+        }
+        const retrieval = searchKnowledge(deps.db, auth.id, body.query, {
+          ...(typeof sourceId === "string" ? { sourceId } : {}),
+          ...(typeof documentId === "string" ? { documentId } : {}),
+          limit: limit as number
+        });
+        const context = buildKnowledgeContext(
+          typeof body.query === "string" ? body.query : "",
+          retrieval.results as Parameters<typeof buildKnowledgeContext>[1],
+          {
+            maxContextTokens: maxContextTokens as number,
+            maxContextChars: maxContextChars as number
+          }
+        );
+        send(res, 200, { data: { retrieval, context } });
       } catch (error) {
         sendKnowledgeError(res, error, id);
       }
