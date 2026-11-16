@@ -77,8 +77,8 @@ export function getKnowledgeSource(db: Database.Database, projectId: string, sou
 export function ingestKnowledgeDocument(db: Database.Database, projectId: string, value: unknown) {
   const input = asObject(value);
   if (typeof input.source_id !== "string" || input.source_id.length < 1) return invalid("source_id is required.");
-  if (typeof input.title !== "string" || title.length < 1 || input.title.length > 240) return invalid("title must contain 1-240 characters.");
-  const title = title;
+  if (typeof input.title !== "string" || input.title.trim().length < 1 || input.title.length > 240) return invalid("title must contain 1-240 characters.");
+  const title = input.title.trim();
   if (typeof input.content !== "string" || input.content.length < 1 || input.content.length > 200000) return invalid("content must contain 1-200000 characters.");
   const format = input.format === undefined ? "text" : input.format;
   if (format !== "text" && format !== "markdown") return invalid("format must be text or markdown.");
