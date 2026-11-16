@@ -267,7 +267,7 @@ export function createAiCoreServer(deps: Dependencies) {
         });
         const context = buildKnowledgeContext(
           typeof body.query === "string" ? body.query : "",
-          retrieval.results as Parameters<typeof buildKnowledgeContext>[1],
+          retrieval.results as unknown as Parameters<typeof buildKnowledgeContext>[1],
           {
             maxContextTokens: maxContextTokens as number,
             maxContextChars: maxContextChars as number
