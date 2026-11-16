@@ -214,6 +214,33 @@ A próxima implementação deve ser a **Etapa 0 — desacoplamento do LLM Runtim
 
 Não iniciar simultaneamente Prompt Studio, RAG e agentes. Primeiro estabilizar o ponto de extensão do provider e garantir regressão zero.
 
+## 10.1. Progresso da Etapa 0 — Provider Registry
+
+A primeira etapa de desacoplamento foi implementada na branch de evolução:
+
+- Criado `ProviderRegistry` com registro explícito de modelos e providers.
+- Criada composição padrão local que registra somente `schr-mock-v1`.
+- `createAiCoreServer` aceita registry injetável, removendo a instanciação direta do MockProvider dentro do handler.
+- `GET /v1/models` passa a listar os modelos habilitados e mantém OpenAI separado como adaptador desabilitado.
+- `POST /v1/chat/completions` usa o modelo padrão quando omitido e rejeita modelos não registrados com `MODEL_NOT_AVAILABLE`.
+- Adicionados testes unitários para resolução do registry e testes HTTP para modelo desconhecido e catálogo de modelos.
+- Atualizada a documentação dos contratos e da arquitetura.
+
+**Validação pendente:** o código foi revisado no repositório, mas a execução de TypeScript check, testes e build precisa ser confirmada pelo GitHub Actions. Não declarar a etapa concluída em qualidade de CI antes de um run verde.
+
+## 10.2. Próxima entrega técnica — Prompt Studio
+
+Após CI verde para a Etapa 0, implementar o Prompt Studio sem depender de LLM:
+
+- CRUD de templates de prompt.
+- Variáveis declaradas e validação de variáveis obrigatórias.
+- Renderização determinística e sem chamadas externas.
+- Versionamento imutável de templates.
+- Persistência SQLite com migração compatível.
+- Testes de renderização, validação, versionamento e isolamento por projeto.
+
+Critério de aceitação: criar, listar, obter versões e renderizar um prompt localmente; nenhum provider é chamado e nenhuma saída é apresentada como geração de IA.
+
 ## 11. Fora do escopo deste roadmap
 
 - Comprar ou reproduzir curso.
