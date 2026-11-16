@@ -17,6 +17,7 @@ import {
   listKnowledgeDocuments,
   listKnowledgeSources
 } from "./knowledge/knowledge-service.js";
+import { searchKnowledge } from "./knowledge/knowledge-search-service.js";
 import {
   addPromptVersion,
   createPrompt,
@@ -215,6 +216,22 @@ export function createAiCoreServer(deps: Dependencies) {
         send(res, 200, { data: getPrompt(deps.db, auth.id, promptMatch[1] ?? "") });
       } catch (error) {
         sendPromptError(res, error, id);
+      }
+      return;
+    }
+
+    if (req.method === "GET" && url.pathname === "/v1/knowledge/search") {
+      try {
+        const rawLimit = url.searchParams.get("limit");
+        const limit = rawLimit === null ? 10 : Number(rawLimit);
+        const data = searchKnowledge(deps.db, auth.id, url.searchParams.get("q"), {
+          sourceId: url.searchParams.get("source_id") ?? undefined,
+          documentId: url.searchParams.get("document_id") ?? undefined,
+          limit
+        });
+        send(res, 200, { data });
+      } catch (error) {
+        sendKnowledgeError(res, error, id);
       }
       return;
     }
