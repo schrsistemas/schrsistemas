@@ -226,7 +226,7 @@ A primeira etapa de desacoplamento foi implementada na branch de evolução:
 - Adicionados testes unitários para resolução do registry e testes HTTP para modelo desconhecido e catálogo de modelos.
 - Atualizada a documentação dos contratos e da arquitetura.
 
-**Validação pendente:** o código foi revisado no repositório, mas a execução de TypeScript check, testes e build precisa ser confirmada pelo GitHub Actions. Não declarar a etapa concluída em qualidade de CI antes de um run verde.
+**Validação concluída:** GitHub Actions run 43978776858 executou com sucesso `npm install`, `npm run check`, `npm test` e `npm run build`. A Etapa 0 está validada pelo CI.
 
 ## 10.2. Próxima entrega técnica — Prompt Studio
 
