@@ -1,7 +1,7 @@
 # Schr AI Platform — Roadmap de evolução
 
 **Versão:** 0.1  
-**Status:** planejamento técnico; não representa funcionalidades implementadas.  
+**Status:** evolução incremental; estados de implementação e validação são indicados por etapa.  
 **Escopo:** evolução local-first do Schr AI Core, sem dependência de curso, material pago ou provedor comercial.
 
 ## 1. Visão do produto
@@ -68,7 +68,7 @@ Persistência e infraestrutura local
 | LLM Runtime | Seleção e execução por contrato de provider | Registry implementado; CI verde |
 | Prompt Studio | Templates, variáveis, versões e composição de prompts | Implementação inicial; aguardando CI |
 | NLP Engine | Normalização, classificação e utilitários de texto | Planejado |
-| Knowledge Engine | Fontes, documentos, metadados e ciclo de ingestão | Planejado |
+| Knowledge Engine | Fontes, documentos, metadados e ciclo de ingestão | Implementação inicial; aguardando CI |
 | Retrieval/RAG Engine | Chunking, indexação, recuperação e contexto com fontes | Planejado |
 | Embedding Runtime | Contrato de embeddings e adaptadores locais/mock | Planejado |
 | Agent Runtime | Execução controlada de planos e ferramentas | Planejado |
@@ -266,3 +266,4 @@ Começar por texto simples e Markdown. Avaliar PDF/DOCX e dependências separada
 - Construir funcionalidades multimodais artificiais sem runtime real.
 - Chamar busca lexical de busca vetorial.
 - Tratar saída mock como resposta de IA real.
+\n\n## 10.4. Progresso da Etapa 2 — Knowledge Engine\n\nImplementação inicial adicionada à branch `feature/schr-ai-platform-roadmap`:\n- `knowledge_sources`, `knowledge_documents` e `knowledge_chunks` no SQLite.\n- Serviço local para criação/listagem de fontes, ingestão e consulta de documentos.\n- Suporte inicial a texto simples e Markdown enviados no JSON.\n- Normalização de quebras de linha, remoção de NUL e normalização Unicode NFC.\n- Hash SHA-256 do conteúdo normalizado e dos chunks.\n- Chunking de 1.200 unidades UTF-16 com overlap de 150 e offsets rastreáveis.\n- Idempotência para conteúdo repetido e atualização/versionamento por `external_id`.\n- Rotas HTTP autenticadas e isolamento por projeto.\n- Testes de serviço e integração HTTP.\n\n**Validação:** pendente de CI no head atualizado. A implementação não deve ser considerada validada até `check`, `test` e `build` passarem.\n
