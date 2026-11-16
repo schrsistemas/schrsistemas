@@ -3,7 +3,21 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Currículo",
-  description: "Currículo e competências técnicas de Daniel Schroeder, analista e desenvolvedor de sistemas."
+  description: "Currículo e competências técnicas de Daniel Schroeder, analista e desenvolvedor de sistemas.",
+  alternates: { canonical: "/curriculo/" },
+  openGraph: {
+    type: "profile",
+    locale: "pt_BR",
+    url: "https://schrsistemas.com/curriculo/",
+    siteName: "Schr Sistemas",
+    title: "Currículo | Daniel Schroeder",
+    description: "Perfil profissional e competências em desenvolvimento de sistemas, integração e automação."
+  },
+  twitter: {
+    card: "summary",
+    title: "Currículo | Daniel Schroeder",
+    description: "Perfil profissional e competências em desenvolvimento de sistemas, integração e automação."
+  }
 };
 
 const groups = [
