@@ -48,9 +48,9 @@ test("Context Builder removes overlapping ranges from the same document", () => 
 });
 
 test("Context Builder applies character and estimated-token budgets and marks truncation", () => {
-  const result = buildKnowledgeContext("budget", [chunk()], { maxContextChars: 48, maxContextTokens: 12 });
-  assert.ok(result.context.length <= 48);
-  assert.ok(result.token_estimate <= 12);
+  const result = buildKnowledgeContext("budget", [chunk()], { maxContextChars: 65, maxContextTokens: 16 });
+  assert.ok(result.context.length <= 65);
+  assert.ok(result.token_estimate <= 16);
   assert.equal(result.truncated, true);
   assert.equal(result.citations.length, 1);
   assert.equal(result.citations[0]?.end_offset, result.selected_chunks[0]?.end_offset);
