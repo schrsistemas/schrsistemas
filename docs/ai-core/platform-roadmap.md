@@ -65,8 +65,8 @@ Persistência e infraestrutura local
 | Módulo | Responsabilidade | Estado |
 |---|---|---|
 | Core Gateway | API, autenticação, políticas e ciclo de requisição | Parcialmente implementado |
-| LLM Runtime | Seleção e execução por contrato de provider | Contrato inicial; seleção ainda precisa ser desacoplada |
-| Prompt Studio | Templates, variáveis, versões e composição de prompts | Planejado |
+| LLM Runtime | Seleção e execução por contrato de provider | Registry implementado; CI verde |
+| Prompt Studio | Templates, variáveis, versões e composição de prompts | Implementação inicial; aguardando CI |
 | NLP Engine | Normalização, classificação e utilitários de texto | Planejado |
 | Knowledge Engine | Fontes, documentos, metadados e ciclo de ingestão | Planejado |
 | Retrieval/RAG Engine | Chunking, indexação, recuperação e contexto com fontes | Planejado |
@@ -228,18 +228,33 @@ A primeira etapa de desacoplamento foi implementada na branch de evolução:
 
 **Validação concluída:** GitHub Actions run 43978776858 executou com sucesso `npm install`, `npm run check`, `npm test` e `npm run build`. A Etapa 0 está validada pelo CI.
 
-## 10.2. Próxima entrega técnica — Prompt Studio
+## 10.2. Progresso da Etapa 1 — Prompt Studio
 
-Após CI verde para a Etapa 0, implementar o Prompt Studio sem depender de LLM:
+Implementação inicial registrada na branch de evolução:
 
-- CRUD de templates de prompt.
-- Variáveis declaradas e validação de variáveis obrigatórias.
-- Renderização determinística e sem chamadas externas.
-- Versionamento imutável de templates.
-- Persistência SQLite com migração compatível.
-- Testes de renderização, validação, versionamento e isolamento por projeto.
+- Persistência SQLite para templates e versões imutáveis.
+- Criação de template com versão inicial.
+- Criação de versões sequenciais sem sobrescrever versões anteriores.
+- Listagem e consulta de templates por projeto.
+- Declaração e validação de variáveis `{{nome}}`.
+- Renderização determinística sem chamada a LLM.
+- Rejeição de variáveis ausentes, desconhecidas ou não textuais.
+- Testes unitários de criação, versionamento, renderização e isolamento por projeto.
+- Teste HTTP de criação e renderização.
+- Documentação dos endpoints, persistência e exemplos.
 
-Critério de aceitação: criar, listar, obter versões e renderizar um prompt localmente; nenhum provider é chamado e nenhuma saída é apresentada como geração de IA.
+**Validação pendente:** aguardar o GitHub Actions no head atualizado da branch. A funcionalidade não deve ser considerada validada antes de `npm run check`, `npm test` e `npm run build` concluírem com sucesso.
+
+## 10.3. Próxima entrega técnica — Knowledge Engine
+
+Depois do CI verde do Prompt Studio, iniciar ingestão local de documentos:
+- registro de fontes e documentos;
+- extração de texto por adaptadores;
+- normalização e metadados de origem;
+- chunking rastreável;
+- hash de conteúdo e reprocessamento idempotente.
+
+Começar por texto simples e Markdown. Avaliar PDF/DOCX e dependências separadamente antes de adicioná-las. Ainda não implementar embeddings ou busca vetorial nesta etapa.
 
 ## 11. Fora do escopo deste roadmap
 
