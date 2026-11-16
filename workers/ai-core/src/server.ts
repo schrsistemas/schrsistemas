@@ -224,9 +224,11 @@ export function createAiCoreServer(deps: Dependencies) {
       try {
         const rawLimit = url.searchParams.get("limit");
         const limit = rawLimit === null ? 10 : Number(rawLimit);
+        const sourceId = url.searchParams.get("source_id");
+        const documentId = url.searchParams.get("document_id");
         const data = searchKnowledge(deps.db, auth.id, url.searchParams.get("q"), {
-          sourceId: url.searchParams.get("source_id") ?? undefined,
-          documentId: url.searchParams.get("document_id") ?? undefined,
+          ...(sourceId ? { sourceId } : {}),
+          ...(documentId ? { documentId } : {}),
           limit
         });
         send(res, 200, { data });
