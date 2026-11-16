@@ -145,6 +145,35 @@ test("HTTP gateway enforces auth, project scope and returns mock completion", as
   assert.equal(contextPayload.data.context.citations[0]?.document_id, documentPayload.data.id);
   assert.equal(contextPayload.data.context.citations[0]?.source_id, sourcePayload.data.id);
   assert.ok(contextPayload.data.context.token_estimate > 0);
+  const embeddingIndex = await fetch(base + "/v1/knowledge/embeddings/index", {
+    method: "POST",
+    headers: {"content-type":"application/json","x-api-key":apiKey},
+    body: JSON.stringify({document_id:documentPayload.data.id})
+  });
+  assert.equal(embeddingIndex.status, 200);
+  const embeddingIndexPayload = await embeddingIndex.json() as {
+    data: {provider:string;model:string;dimensions:number;simulated:boolean;semantic:boolean;indexed_chunks:number}
+  };
+  assert.equal(embeddingIndexPayload.data.provider, "mock");
+  assert.equal(embeddingIndexPayload.data.model, "schr-mock-embedding-v1");
+  assert.equal(embeddingIndexPayload.data.dimensions, 32);
+  assert.equal(embeddingIndexPayload.data.simulated, true);
+  assert.equal(embeddingIndexPayload.data.semantic, false);
+  assert.equal(embeddingIndexPayload.data.indexed_chunks, 1);
+
+  const storedEmbeddings = await fetch(base + "/v1/knowledge/embeddings?document_id=" + documentPayload.data.id, {
+    headers: {"x-api-key":apiKey}
+  });
+  assert.equal(storedEmbeddings.status, 200);
+  const storedEmbeddingPayload = await storedEmbeddings.json() as {
+    data: Array<{chunk_id:string;vector:number[];simulated:boolean;semantic:boolean;dimensions:number}>
+  };
+  assert.equal(storedEmbeddingPayload.data.length, 1);
+  assert.equal(storedEmbeddingPayload.data[0]?.vector.length, 32);
+  assert.equal(storedEmbeddingPayload.data[0]?.simulated, true);
+  assert.equal(storedEmbeddingPayload.data[0]?.semantic, false);
+  assert.equal(storedEmbeddingPayload.data[0]?.dimensions, 32);
+
 
 
   const usage = await fetch(base + "/v1/usage", {headers:{"x-api-key":apiKey}});
