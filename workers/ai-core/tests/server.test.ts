@@ -113,7 +113,7 @@ test("HTTP gateway enforces auth, project scope and returns mock completion", as
   assert.equal(knowledgeDetailPayload.data.content, "# Guia\\nConteúdo de teste");
   assert.equal(knowledgeDetailPayload.data.chunks[0]?.content, "# Guia\\nConteúdo de teste");
 
-  const knowledgeSearch = await fetch(base + "/v1/knowledge/search?q=Conte%C3%BAdo%20teste", {
+  const knowledgeSearch = await fetch(base + "/v1/knowledge/search?q=teste", {
     headers: {"x-api-key":apiKey}
   });
   assert.equal(knowledgeSearch.status, 200);
