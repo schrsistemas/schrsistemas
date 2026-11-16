@@ -3,7 +3,21 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Projetos",
-  description: "Projetos e iniciativas da Schr Sistemas em software, IoT, automação e integrações."
+  description: "Projetos e iniciativas da Schr Sistemas em software, IoT, automação e integrações.",
+  alternates: { canonical: "/projetos/" },
+  openGraph: {
+    type: "website",
+    locale: "pt_BR",
+    url: "https://schrsistemas.com/projetos/",
+    siteName: "Schr Sistemas",
+    title: "Projetos da Schr Sistemas",
+    description: "Projetos e iniciativas em software, IoT, automação e integrações."
+  },
+  twitter: {
+    card: "summary",
+    title: "Projetos da Schr Sistemas",
+    description: "Projetos e iniciativas em software, IoT, automação e integrações."
+  }
 };
 
 const projects = [
