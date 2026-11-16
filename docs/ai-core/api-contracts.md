@@ -77,3 +77,38 @@ Request JSON:
 O campo version é opcional; quando omitido, utiliza a versão mais recente. Valores de variáveis devem ser strings. Variáveis obrigatórias devem ser fornecidas e variáveis desconhecidas são rejeitadas. A resposta contém template_id, version_id, version e output.
 
 Erros específicos: PROMPT_VALIDATION_ERROR 400, PROMPT_NOT_FOUND 404, PROMPT_VERSION_NOT_FOUND 404, PROJECT_FORBIDDEN 403, PROMPT_INTERNAL_ERROR 500. Conteúdo de templates é persistido intencionalmente; prompts enviados ao endpoint de chat continuam sem persistência de conteúdo.
+
+## Knowledge Engine
+
+Todos os endpoints exigem `X-API-Key` e respeitam o projeto associado à chave.
+
+### POST /v1/knowledge/sources
+Cria uma fonte documental. Request: `{"name":"Manual técnico","description":"Opcional"}`. Nome de 1-120 caracteres; descrição opcional de até 500.
+
+### GET /v1/knowledge/sources
+Lista fontes do projeto e a contagem de documentos.
+
+### POST /v1/knowledge/documents
+Ingere texto ou Markdown. Request:
+```json
+{
+  "source_id": "ks_...",
+  "external_id": "manual-v1",
+  "title": "Manual",
+  "format": "markdown",
+  "content": "# Título\\nConteúdo"
+}
+```
+`format` aceita `text` ou `markdown` (padrão `text`). Conteúdo de 1 a 200.000 caracteres, sujeito também ao limite de corpo HTTP configurado. SHA-256 é calculado após normalização. Chunks têm alvo de 1.200 unidades UTF-16 e sobreposição de 150.
+
+Conteúdo idêntico normalizado na mesma fonte é idempotente. Com `external_id`, conteúdo alterado atualiza o documento lógico e incrementa sua versão, substituindo chunks em transação.
+
+### GET /v1/knowledge/documents
+Lista documentos; aceita filtro opcional `source_id`.
+
+### GET /v1/knowledge/documents/{id}
+Retorna metadados, conteúdo normalizado e chunks com offsets e hashes.
+
+Erros específicos: KNOWLEDGE_VALIDATION_ERROR 400, KNOWLEDGE_SOURCE_NOT_FOUND 404, KNOWLEDGE_DOCUMENT_NOT_FOUND 404, KNOWLEDGE_INTERNAL_ERROR 500.
+
+Esta etapa não implementa PDF/DOCX, embeddings, busca vetorial ou RAG.
