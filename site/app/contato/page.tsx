@@ -2,7 +2,21 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Contato",
-  description: "Entre em contato com a Schr Sistemas para conversar sobre desenvolvimento, integração e automação."
+  description: "Entre em contato com a Schr Sistemas para conversar sobre desenvolvimento, integração e automação.",
+  alternates: { canonical: "/contato/" },
+  openGraph: {
+    type: "website",
+    locale: "pt_BR",
+    url: "https://schrsistemas.com/contato/",
+    siteName: "Schr Sistemas",
+    title: "Contato | Schr Sistemas",
+    description: "Entre em contato para conversar sobre desenvolvimento, integração e automação."
+  },
+  twitter: {
+    card: "summary",
+    title: "Contato | Schr Sistemas",
+    description: "Entre em contato para conversar sobre desenvolvimento, integração e automação."
+  }
 };
 
 export default function ContactPage() {
