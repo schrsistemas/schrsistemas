@@ -5,8 +5,8 @@ import { pathToFileURL } from "node:url";
 import type Database from "better-sqlite3";
 import { loadConfig } from "./config.js";
 import { openDatabase } from "./database.js";
-import { MockProvider } from "./providers/mock.provider.js";
-import { OpenAIProvider } from "./providers/openai.provider.js";
+import { createDefaultProviderRegistry } from "./providers/default-provider-registry.js";
+import type { ProviderRegistry } from "./providers/provider-registry.js";
 import { validateChatRequest } from "./validation.js";
 import type { ChatRequest } from "./types.js";
 
@@ -15,6 +15,8 @@ interface Dependencies {
   maxRequestBytes: number;
   rateLimitWindowMs: number;
   rateLimitMaxRequests: number;
+  /** Registry injetável para composição local e testes. */
+  providerRegistry?: ProviderRegistry;
 }
 
 interface AuthenticatedProject { id: string; }
@@ -81,8 +83,7 @@ async function readJson(req: IncomingMessage, maxBytes: number): Promise<unknown
 }
 
 export function createAiCoreServer(deps: Dependencies) {
-  const mock = new MockProvider();
-  const openai = new OpenAIProvider();
+  const providers = deps.providerRegistry ?? createDefaultProviderRegistry();
 
   return createServer(async (req, res) => {
     const id = requestId();
@@ -92,8 +93,8 @@ export function createAiCoreServer(deps: Dependencies) {
       send(res, 200, {
         status: "ok",
         service: "schr-ai-core",
-        version: "0.1.0",
-        provider: "mock",
+        version: "0.2.0",
+        provider: "registry",
         uptime_ms: Date.now() - startedAt
       });
       return;
@@ -108,10 +109,10 @@ export function createAiCoreServer(deps: Dependencies) {
     const keyHash = createHash("sha256").update(String(req.headers["x-api-key"])).digest("hex");
 
     if (req.method === "GET" && url.pathname === "/v1/models") {
-      send(res, 200, { data: [
-        { id: "schr-mock-v1", provider: "mock", enabled: true },
-        { id: "openai-adapter", provider: "openai", enabled: openai.enabled, reason: "Disabled by zero-cost policy" }
-      ] });
+      send(res, 200, {
+        data: providers.listModels(),
+        disabled: [{ id: "openai-adapter", provider: "openai", enabled: false, reason: "Disabled by zero-cost policy" }]
+      });
       return;
     }
 
@@ -175,6 +176,18 @@ export function createAiCoreServer(deps: Dependencies) {
       return;
     }
 
+    const selection = providers.resolve(input.model);
+    if (!selection) {
+      send(res, 400, {
+        error: {
+          code: "MODEL_NOT_AVAILABLE",
+          message: "Requested model is not registered or enabled for this instance.",
+          request_id: id
+        }
+      });
+      return;
+    }
+
     if (idem) {
       const previous = deps.db.prepare(
         "SELECT id, provider, model, status, input_tokens, output_tokens, total_tokens FROM ai_requests WHERE project_id = ? AND idempotency_key = ?"
@@ -187,17 +200,17 @@ export function createAiCoreServer(deps: Dependencies) {
 
     const started = Date.now();
     try {
-      const result = await mock.generate(input);
+      const result = await selection.provider.generate({ ...input, model: selection.modelId });
       const duration = Date.now() - started;
       deps.db.prepare(
         "INSERT INTO ai_requests(id,project_id,provider,model,status,input_tokens,output_tokens,total_tokens,duration_ms,idempotency_key) VALUES(?,?,? ,?,'completed',?,?,?,?,?)"
-      ).run(id, auth.id, mock.name, result.model, result.usage.input_tokens, result.usage.output_tokens,
+      ).run(id, auth.id, selection.provider.name, result.model, result.usage.input_tokens, result.usage.output_tokens,
         result.usage.total_tokens, duration, idem ?? null);
 
       send(res, 200, {
         id,
         status: "completed",
-        provider: mock.name,
+        provider: selection.provider.name,
         model: result.model,
         output: result.output,
         usage: result.usage,
