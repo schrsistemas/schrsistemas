@@ -113,6 +113,20 @@ test("HTTP gateway enforces auth, project scope and returns mock completion", as
   assert.equal(knowledgeDetailPayload.data.content, "# Guia\\nConteúdo de teste");
   assert.equal(knowledgeDetailPayload.data.chunks[0]?.content, "# Guia\\nConteúdo de teste");
 
+  const knowledgeSearch = await fetch(base + "/v1/knowledge/search?q=Conte%C3%BAdo%20teste", {
+    headers: {"x-api-key":apiKey}
+  });
+  assert.equal(knowledgeSearch.status, 200);
+  const searchPayload = await knowledgeSearch.json() as {
+    data: {strategy:string;semantic:boolean;count:number;results:Array<{document_id:string;source_id:string;content:string}>}
+  };
+  assert.equal(searchPayload.data.strategy, "lexical_fts5");
+  assert.equal(searchPayload.data.semantic, false);
+  assert.equal(searchPayload.data.count, 1);
+  assert.equal(searchPayload.data.results[0]?.document_id, documentPayload.data.id);
+  assert.equal(searchPayload.data.results[0]?.source_id, sourcePayload.data.id);
+  assert.match(searchPayload.data.results[0]?.content ?? "", /Conteúdo de teste/);
+
   const usage = await fetch(base + "/v1/usage", {headers:{"x-api-key":apiKey}});
   assert.equal(usage.status, 200);
   const totals = await usage.json() as {data:{requests:number}};
