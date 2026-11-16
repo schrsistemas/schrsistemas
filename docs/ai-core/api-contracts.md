@@ -112,3 +112,18 @@ Retorna metadados, conteúdo normalizado e chunks com offsets e hashes.
 Erros específicos: KNOWLEDGE_VALIDATION_ERROR 400, KNOWLEDGE_SOURCE_NOT_FOUND 404, KNOWLEDGE_DOCUMENT_NOT_FOUND 404, KNOWLEDGE_INTERNAL_ERROR 500.
 
 Esta etapa não implementa PDF/DOCX, embeddings, busca vetorial ou RAG.
+
+## Retrieval Engine — busca lexical
+
+### GET /v1/knowledge/search
+Autenticado. Parâmetros de query string:
+- `q`: obrigatório, 2-200 caracteres; termos combinados por AND.
+- `source_id`: filtro opcional por fonte do projeto.
+- `document_id`: filtro opcional por documento do projeto.
+- `limit`: inteiro opcional de 1 a 50; padrão 10.
+
+A resposta retorna `strategy: "lexical_fts5"`, `semantic: false` e resultados com chunk_id, document_id, source_id, título, fonte, conteúdo, offsets, hash e score BM25.
+
+Erros: KNOWLEDGE_SEARCH_VALIDATION_ERROR 400; KNOWLEDGE_SEARCH_UNAVAILABLE 503 quando FTS5 não estiver disponível; KNOWLEDGE_SOURCE_NOT_FOUND 404; KNOWLEDGE_DOCUMENT_NOT_FOUND 404.
+
+A busca é lexical, com índice SQLite FTS5. Não é busca vetorial ou semântica.
