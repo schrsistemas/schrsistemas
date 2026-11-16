@@ -1,4 +1,4 @@
-# Schr AI Core — contratos HTTP 0.1
+# Schr AI Core — contratos HTTP 0.2
 
 Base local: http://127.0.0.1:8788
 
@@ -6,17 +6,21 @@ Base local: http://127.0.0.1:8788
 Todos os endpoints exceto GET /health exigem X-API-Key.
 
 ## GET /health
-Público. Retorna status, serviço, versão, provedor e uptime.
+Público. Retorna status, serviço, versão, indicação de registry e uptime.
 
 ## GET /v1/models
-Autenticado. Lista mock habilitado e adaptador OpenAI desabilitado.
+Autenticado. Retorna `data` com somente os modelos registrados e habilitados na instância e `disabled` com adaptadores reservados indisponíveis.
+
+Na composição padrão, `schr-mock-v1` é o único modelo habilitado. OpenAI permanece desabilitado pela política de custo zero.
 
 ## POST /v1/chat/completions
 Autenticado. Idempotency-Key opcional, 1-128 caracteres.
 
 Request JSON: project obrigatório (2-64 caracteres); input obrigatório (1-12000); instructions opcional (até 4000); model opcional; max_output_tokens opcional (1-2048).
 
-Resposta 200: id, status, provider, model, output, usage e duration_ms. O texto de saída identifica explicitamente a simulação.
+Quando model é omitido, o registry seleciona o modelo padrão local. Quando informado, deve corresponder a um modelo registrado e habilitado. Modelo desconhecido retorna `MODEL_NOT_AVAILABLE` (400).
+
+Resposta 200: id, status, provider, model, output, usage e duration_ms. O texto de saída do MockProvider identifica explicitamente a simulação.
 
 ## GET /v1/usage
 Autenticado. Agrega chamadas e estimativas de tokens. Não é consumo faturável.
@@ -25,4 +29,4 @@ Autenticado. Agrega chamadas e estimativas de tokens. Não é consumo faturável
 Autenticado. Retorna somente metadados operacionais, sem prompt nem resposta.
 
 ## Erros
-JSON no formato {"error":{"code":"...","message":"...","request_id":"..."}}. Códigos: UNAUTHORIZED 401, NOT_FOUND 404, VALIDATION_ERROR 400, INVALID_JSON 400, PAYLOAD_TOO_LARGE 413, RATE_LIMITED 429, INVALID_IDEMPOTENCY_KEY 400.
+JSON no formato `{"error":{"code":"...","message":"...","request_id":"..."}}`. Códigos: UNAUTHORIZED 401, NOT_FOUND 404, VALIDATION_ERROR 400, INVALID_JSON 400, PAYLOAD_TOO_LARGE 413, RATE_LIMITED 429, INVALID_IDEMPOTENCY_KEY 400, MODEL_NOT_AVAILABLE 400.
