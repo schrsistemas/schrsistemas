@@ -3,7 +3,21 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Sobre",
-  description: "Conheça a Schr Sistemas e a trajetória profissional de Daniel Schroeder."
+  description: "Conheça a Schr Sistemas e a trajetória profissional de Daniel Schroeder.",
+  alternates: { canonical: "/sobre/" },
+  openGraph: {
+    type: "website",
+    locale: "pt_BR",
+    url: "https://schrsistemas.com/sobre/",
+    siteName: "Schr Sistemas",
+    title: "Sobre a Schr Sistemas",
+    description: "Conheça a atuação da Schr Sistemas em desenvolvimento de software, sistemas empresariais, integração e automação."
+  },
+  twitter: {
+    card: "summary",
+    title: "Sobre a Schr Sistemas",
+    description: "Desenvolvimento de software, sistemas empresariais, integração e automação."
+  }
 };
 
 export default function AboutPage() {
