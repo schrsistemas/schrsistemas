@@ -151,3 +151,16 @@ query é obrigatório (2-200 caracteres); filtros são opcionais; limit aceita 1
 A estimativa é determinística: ceil(context_utf16_chars / 4). Não é contagem exata de tokenizer. Trechos sobrepostos do mesmo documento são subtraídos por intervalos de origem; a seleção respeita o menor score BM25 primeiro. Quando o orçamento termina no meio de um trecho, o segmento é truncado e truncated: true. Contexto vazio é permitido quando a busca não encontra resultados.
 
 Erros adicionais: KNOWLEDGE_CONTEXT_VALIDATION_ERROR 400. A busca continua sendo lexical (semantic: false); esta rota não gera resposta nem afirma groundedness de uma LLM.
+
+
+## Embedding Runtime — indexação local
+
+### POST /v1/knowledge/embeddings/index
+Autenticado. Request: `{"document_id":"kd_..."}`. Gera e persiste um vetor por chunk do documento com o provider de embeddings configurado na instância. A composição padrão utiliza `MockEmbeddingProvider`, identificado como `provider: mock`, `model: schr-mock-embedding-v1`, `simulated: true` e `semantic: false`. Retorna o modelo, versão, dimensão e quantidade de chunks indexados.
+
+### GET /v1/knowledge/embeddings?document_id=kd_...
+Autenticado. Lista embeddings persistidos para o documento do projeto autenticado, incluindo metadados de modelo, hash do chunk, dimensão e vetor numérico.
+
+O mock é hash-derived e determinístico, apenas para testar contrato e persistência. Não codifica significado linguístico e não pode ser usado para recuperação semântica ou avaliação de relevância. O armazenamento SQLite não executa busca vetorial nesta etapa.
+
+Erros adicionais: EMBEDDING_VALIDATION_ERROR 400, EMBEDDING_DOCUMENT_EMPTY 400, EMBEDDING_PROVIDER_INVALID_OUTPUT 502, KNOWLEDGE_DOCUMENT_NOT_FOUND 404.
