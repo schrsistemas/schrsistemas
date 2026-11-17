@@ -71,7 +71,9 @@ test("hybrid retrieval rejects mock providers and excludes stale content hashes"
   });
   const result = await searchKnowledgeHybrid(db, "project-a", "manual updated", provider);
   assert.equal(result.candidates_scanned, 0);
-  assert.equal(result.count, 0);
+  assert.equal(result.count, 1);
+  assert.equal(result.results[0]?.vector_rank, null);
+  assert.equal(result.results[0]?.lexical_rank, 1);
 });
 
 test("hybrid retrieval rejects corrupt persisted vectors", async (t) => {
