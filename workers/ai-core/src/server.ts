@@ -20,6 +20,7 @@ import {
 import { searchKnowledge } from "./knowledge/knowledge-search-service.js";
 import { searchKnowledgeHybrid, type QueryEmbeddingProvider } from "./knowledge/hybrid-search-service.js";
 import { buildKnowledgeContext } from "./knowledge/context-builder.js";
+import { answerFromKnowledge } from "./knowledge/rag-answer-service.js";
 import { MockEmbeddingProvider } from "./knowledge/embedding-provider.js";
 import type { EmbeddingProvider } from "./knowledge/embedding-provider.js";
 import { indexKnowledgeDocumentEmbeddings, listKnowledgeDocumentEmbeddings } from "./knowledge/embedding-service.js";
@@ -301,6 +302,42 @@ export function createAiCoreServer(deps: Dependencies) {
           throw new KnowledgeServiceError("EMBEDDING_VALIDATION_ERROR", 400, "document_id query parameter is required.");
         }
         send(res, 200, { data: listKnowledgeDocumentEmbeddings(deps.db, auth.id, documentId) });
+      } catch (error) {
+        sendKnowledgeError(res, error, id);
+      }
+      return;
+    }
+
+    if (req.method === "POST" && url.pathname === "/v1/knowledge/answer") {
+      try {
+        const raw = await readJson(req, deps.maxRequestBytes);
+        if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
+          throw new KnowledgeServiceError("RAG_VALIDATION_ERROR", 400, "Request body must be a JSON object.");
+        }
+        const body = raw as Record<string, unknown>;
+        if (body.source_id !== undefined && (typeof body.source_id !== "string" || body.source_id.length === 0)) {
+          throw new KnowledgeServiceError("RAG_VALIDATION_ERROR", 400, "source_id must be a non-empty string.");
+        }
+        if (body.document_id !== undefined && (typeof body.document_id !== "string" || body.document_id.length === 0)) {
+          throw new KnowledgeServiceError("RAG_VALIDATION_ERROR", 400, "document_id must be a non-empty string.");
+        }
+        const model = body.model === undefined ? undefined : body.model;
+        if (model !== undefined && (typeof model !== "string" || model.length < 1 || model.length > 80)) {
+          throw new KnowledgeServiceError("RAG_VALIDATION_ERROR", 400, "model must contain 1-80 characters.");
+        }
+        const selection = providers.resolve(model as string | undefined);
+        if (!selection) {
+          throw new KnowledgeServiceError("MODEL_NOT_AVAILABLE", 400, "Requested generation model is not registered.");
+        }
+        const data = await answerFromKnowledge(deps.db, auth.id, body.query, selection.modelId, selection.provider, {
+          ...(typeof body.source_id === "string" ? { sourceId: body.source_id } : {}),
+          ...(typeof body.document_id === "string" ? { documentId: body.document_id } : {}),
+          ...(body.retrieval_limit !== undefined ? { retrievalLimit: body.retrieval_limit as number } : {}),
+          ...(body.max_context_tokens !== undefined ? { maxContextTokens: body.max_context_tokens as number } : {}),
+          ...(body.max_context_chars !== undefined ? { maxContextChars: body.max_context_chars as number } : {}),
+          ...(body.max_output_tokens !== undefined ? { maxOutputTokens: body.max_output_tokens as number } : {})
+        });
+        send(res, 200, { data });
       } catch (error) {
         sendKnowledgeError(res, error, id);
       }
