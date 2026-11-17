@@ -281,7 +281,7 @@ Implementação inicial de recuperação lexical local:
 
 **Limites:** sem embeddings, sinônimos, reranking semântico, VectorStore ou geração RAG nesta etapa.
 
-**Validação:** aguardando CI do head atualizado.
+**Validação concluída:** GitHub Actions run 43982241753 executou com sucesso npm install, npm run check, npm test e npm run build.
 
 
 ## 10.6. Progresso da Etapa 4 — RAG Context Builder
@@ -314,4 +314,4 @@ Implementação na branch de evolução:
 
 **Limites:** os vetores mock não codificam semântica. Não existe similaridade vetorial, busca semântica ou modelo local real nesta entrega. Um runtime real exige avaliação separada de modelo, licença, dependências, memória, CPU e operação offline.
 
-**Validação:** CI desta etapa pendente.
+**Validação concluída:** GitHub Actions run 43984309560 executou com sucesso npm install, npm run check, npm test e npm run build.
