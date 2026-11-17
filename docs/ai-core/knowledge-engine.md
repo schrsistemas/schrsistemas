@@ -128,3 +128,14 @@ O endpoint autenticado POST /v1/knowledge/context combina a recuperação lexica
 - Estima tokens como ceil(context_utf16_chars / 4); é uma aproximação operacional, não tokenizer de modelo.
 
 O pacote de contexto é evidência de quais trechos foram selecionados, não prova de que uma resposta gerada por modelo esteja correta. A geração RAG e a validação de groundedness permanecem fora desta etapa.
+
+
+## Embedding Runtime — estado inicial
+
+O contrato `EmbeddingProvider` declara provider, modelo, versão, dimensão e flags `simulated`/`semantic`. O `MockEmbeddingProvider` gera vetores determinísticos derivados de hash para validar o pipeline, com dimensão 32; esses vetores não representam significado semântico.
+
+O contrato `VectorStore` e o adaptador `SqliteVectorStore` persistem e listam vetores com metadados e proveniência. O serviço indexa chunks em lotes de até 32 e é idempotente por chunk/provider/model/version. Atualizações de documentos removem embeddings antigos via integridade referencial.
+
+Rotas autenticadas: `POST /v1/knowledge/embeddings/index` e `GET /v1/knowledge/embeddings?document_id=...`.
+
+**Limites:** ainda não existe busca por similaridade, ranking vetorial, embedding real ou recuperação semântica. O mock é explicitamente identificado e não pode ser interpretado como embedding útil para busca.
