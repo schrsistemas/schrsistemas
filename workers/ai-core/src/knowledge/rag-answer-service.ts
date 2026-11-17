@@ -62,7 +62,7 @@ export async function answerFromKnowledge(
     ...(options.documentId ? { documentId: options.documentId } : {}),
     limit: retrievalLimit
   });
-  const context = buildKnowledgeContext(query.trim(), retrieval.results as Parameters<typeof buildKnowledgeContext>[1], {
+  const context = buildKnowledgeContext(query.trim(), retrieval.results as unknown as Parameters<typeof buildKnowledgeContext>[1], {
     ...(options.maxContextTokens !== undefined ? { maxContextTokens: options.maxContextTokens } : {}),
     ...(options.maxContextChars !== undefined ? { maxContextChars: options.maxContextChars } : {})
   });
