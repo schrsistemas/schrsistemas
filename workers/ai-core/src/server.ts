@@ -18,6 +18,7 @@ import {
   listKnowledgeSources
 } from "./knowledge/knowledge-service.js";
 import { searchKnowledge } from "./knowledge/knowledge-search-service.js";
+import { searchKnowledgeHybrid } from "./knowledge/hybrid-search-service.js";
 import { buildKnowledgeContext } from "./knowledge/context-builder.js";
 import { MockEmbeddingProvider } from "./knowledge/embedding-provider.js";
 import type { EmbeddingProvider } from "./knowledge/embedding-provider.js";
@@ -237,6 +238,35 @@ export function createAiCoreServer(deps: Dependencies) {
           ...(sourceId ? { sourceId } : {}),
           ...(documentId ? { documentId } : {}),
           limit
+        });
+        send(res, 200, { data });
+      } catch (error) {
+        sendKnowledgeError(res, error, id);
+      }
+      return;
+    }
+
+    if (req.method === "POST" && url.pathname === "/v1/knowledge/search/hybrid") {
+      try {
+        const raw = await readJson(req, deps.maxRequestBytes);
+        if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
+          throw new KnowledgeServiceError("KNOWLEDGE_SEARCH_VALIDATION_ERROR", 400, "Request body must be a JSON object.");
+        }
+        const body = raw as Record<string, unknown>;
+        if (body.source_id !== undefined && (typeof body.source_id !== "string" || body.source_id.length === 0)) {
+          throw new KnowledgeServiceError("KNOWLEDGE_SEARCH_VALIDATION_ERROR", 400, "source_id must be a non-empty string.");
+        }
+        if (body.document_id !== undefined && (typeof body.document_id !== "string" || body.document_id.length === 0)) {
+          throw new KnowledgeServiceError("KNOWLEDGE_SEARCH_VALIDATION_ERROR", 400, "document_id must be a non-empty string.");
+        }
+        const data = await searchKnowledgeHybrid(deps.db, auth.id, body.query, embeddingProvider as EmbeddingProvider & {
+          embedQuery?: (texts: string[]) => Promise<import("./knowledge/embedding-provider.js").EmbeddingResult>;
+        }, {
+          ...(typeof body.source_id === "string" ? { sourceId: body.source_id } : {}),
+          ...(typeof body.document_id === "string" ? { documentId: body.document_id } : {}),
+          ...(body.limit !== undefined ? { limit: body.limit as number } : {}),
+          ...(body.candidate_limit !== undefined ? { candidateLimit: body.candidate_limit as number } : {}),
+          ...(body.rrf_k !== undefined ? { rrfK: body.rrf_k as number } : {})
         });
         send(res, 200, { data });
       } catch (error) {
