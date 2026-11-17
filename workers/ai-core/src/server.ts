@@ -21,6 +21,7 @@ import { searchKnowledge } from "./knowledge/knowledge-search-service.js";
 import { searchKnowledgeHybrid, type QueryEmbeddingProvider } from "./knowledge/hybrid-search-service.js";
 import { buildKnowledgeContext } from "./knowledge/context-builder.js";
 import { answerFromKnowledge } from "./knowledge/rag-answer-service.js";
+import { evaluateAnswerGrounding, evaluateKnowledgeRetrieval } from "./knowledge/evaluation-service.js";
 import { MockEmbeddingProvider } from "./knowledge/embedding-provider.js";
 import type { EmbeddingProvider } from "./knowledge/embedding-provider.js";
 import { indexKnowledgeDocumentEmbeddings, listKnowledgeDocumentEmbeddings } from "./knowledge/embedding-service.js";
@@ -302,6 +303,26 @@ export function createAiCoreServer(deps: Dependencies) {
           throw new KnowledgeServiceError("EMBEDDING_VALIDATION_ERROR", 400, "document_id query parameter is required.");
         }
         send(res, 200, { data: listKnowledgeDocumentEmbeddings(deps.db, auth.id, documentId) });
+      } catch (error) {
+        sendKnowledgeError(res, error, id);
+      }
+      return;
+    }
+
+    if (req.method === "POST" && url.pathname === "/v1/evaluations/retrieval") {
+      try {
+        const body = await readJson(req, deps.maxRequestBytes);
+        send(res, 200, { data: evaluateKnowledgeRetrieval(deps.db, auth.id, body) });
+      } catch (error) {
+        sendKnowledgeError(res, error, id);
+      }
+      return;
+    }
+
+    if (req.method === "POST" && url.pathname === "/v1/evaluations/grounding") {
+      try {
+        const body = await readJson(req, deps.maxRequestBytes);
+        send(res, 200, { data: evaluateAnswerGrounding(body) });
       } catch (error) {
         sendKnowledgeError(res, error, id);
       }
