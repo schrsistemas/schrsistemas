@@ -145,6 +145,44 @@ test("HTTP gateway enforces auth, project scope and returns mock completion", as
   assert.equal(contextPayload.data.context.citations[0]?.document_id, documentPayload.data.id);
   assert.equal(contextPayload.data.context.citations[0]?.source_id, sourcePayload.data.id);
   assert.ok(contextPayload.data.context.token_estimate > 0);
+  const ragAnswer = await fetch(base + "/v1/knowledge/answer", {
+    method: "POST",
+    headers: {"content-type":"application/json","x-api-key":apiKey},
+    body: JSON.stringify({query:"teste"})
+  });
+  assert.equal(ragAnswer.status, 200);
+  const ragPayload = await ragAnswer.json() as {
+    data: {
+      answer:string;
+      abstained:boolean;
+      retrieval:{strategy:string;semantic:boolean};
+      context:{citations:Array<{document_id:string;source_id:string}>};
+      generation:{provider:string;model:string;simulated:boolean}|null;
+    }
+  };
+  assert.equal(ragPayload.data.abstained, false);
+  assert.equal(ragPayload.data.retrieval.strategy, "lexical_fts5");
+  assert.equal(ragPayload.data.retrieval.semantic, false);
+  assert.equal(ragPayload.data.context.citations[0]?.document_id, documentPayload.data.id);
+  assert.equal(ragPayload.data.context.citations[0]?.source_id, sourcePayload.data.id);
+  assert.equal(ragPayload.data.generation?.provider, "mock");
+  assert.equal(ragPayload.data.generation?.simulated, true);
+  assert.match(ragPayload.data.answer, /MOCK PROVIDER/);
+
+  const ragNoEvidence = await fetch(base + "/v1/knowledge/answer", {
+    method: "POST",
+    headers: {"content-type":"application/json","x-api-key":apiKey},
+    body: JSON.stringify({query:"pergunta sem correspondência"})
+  });
+  assert.equal(ragNoEvidence.status, 200);
+  const noEvidencePayload = await ragNoEvidence.json() as {
+    data:{abstained:boolean;abstention_reason:string;generation:null;context:{citations:unknown[]}}
+  };
+  assert.equal(noEvidencePayload.data.abstained, true);
+  assert.equal(noEvidencePayload.data.abstention_reason, "NO_RETRIEVED_EVIDENCE");
+  assert.equal(noEvidencePayload.data.generation, null);
+  assert.equal(noEvidencePayload.data.context.citations.length, 0);
+
   const embeddingIndex = await fetch(base + "/v1/knowledge/embeddings/index", {
     method: "POST",
     headers: {"content-type":"application/json","x-api-key":apiKey},
