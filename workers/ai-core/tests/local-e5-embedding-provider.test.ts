@@ -1,8 +1,14 @@
+import { mkdtemp, mkdir, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { LocalE5EmbeddingProvider } from "../src/knowledge/local-e5-embedding-provider.js";
 
-test("Local E5 adapter uses local-only runtime and passage/query prefixes", async () => {
+test("Local E5 adapter uses local-only runtime and passage/query prefixes", async (t) => {
+  const modelsPath = await mkdtemp(join(tmpdir(), "schr-e5-"));
+  await mkdir(join(modelsPath, "intfloat", "multilingual-e5-small"), { recursive: true });
+  t.after(() => rm(modelsPath, { recursive: true, force: true }));
   const seen: string[][] = [];
   const env = {
     allowRemoteModels: true,
@@ -10,7 +16,7 @@ test("Local E5 adapter uses local-only runtime and passage/query prefixes", asyn
     localModelPath: ""
   };
   const provider = new LocalE5EmbeddingProvider({
-    modelsPath: "/models",
+    modelsPath,
     modelVersion: "test-revision-sha",
     runtimeLoader: async () => ({
       env,
@@ -36,7 +42,7 @@ test("Local E5 adapter uses local-only runtime and passage/query prefixes", asyn
 
   assert.equal(env.allowRemoteModels, false);
   assert.equal(env.allowLocalModels, true);
-  assert.equal(env.localModelPath, "/models/");
+  assert.equal(env.localModelPath, modelsPath + "/");
   assert.deepEqual(seen, [["passage: Documento técnico"], ["query: Como funciona?"]]);
   assert.equal(passages.model.semantic, true);
   assert.equal(passages.model.simulated, false);
@@ -45,12 +51,15 @@ test("Local E5 adapter uses local-only runtime and passage/query prefixes", asyn
   assert.equal(queries.vectors[0]?.length, 384);
 });
 
-test("Local E5 adapter rejects malformed inputs and invalid tensor shapes", async () => {
+test("Local E5 adapter rejects malformed inputs and invalid tensor shapes", async (t) => {
+  const modelsPath = await mkdtemp(join(tmpdir(), "schr-e5-"));
+  await mkdir(join(modelsPath, "intfloat", "multilingual-e5-small"), { recursive: true });
+  t.after(() => rm(modelsPath, { recursive: true, force: true }));
   const provider = new LocalE5EmbeddingProvider({
-    modelsPath: "/models",
+    modelsPath,
     modelVersion: "test",
     runtimeLoader: async () => ({
-      env: { allowRemoteModels: false, allowLocalModels: true, localModelPath: "/models/" },
+      env: { allowRemoteModels: false, allowLocalModels: true, localModelPath: modelsPath + "/" },
       pipeline: async () => async () => ({ dims: [1, 3], data: [1, 2, 3] })
     })
   });
