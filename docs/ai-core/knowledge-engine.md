@@ -139,3 +139,31 @@ O contrato `VectorStore` e o adaptador `SqliteVectorStore` persistem e listam ve
 Rotas autenticadas: `POST /v1/knowledge/embeddings/index` e `GET /v1/knowledge/embeddings?document_id=...`.
 
 **Limites:** ainda não existe busca por similaridade, ranking vetorial, embedding real ou recuperação semântica. O mock é explicitamente identificado e não pode ser interpretado como embedding útil para busca.
+
+
+## Local E5 Embedding Provider — adaptador inicial
+
+Foi adicionado `LocalE5EmbeddingProvider`, baseado em Transformers.js 3.8.1 e ONNX Runtime em CPU.
+
+- Modelo: `intfloat/multilingual-e5-small`, dimensão esperada de 384.
+- `embed(texts)` aplica o prefixo `passage: ` para indexação documental.
+- `embedQuery(texts)` aplica `query: ` para consultas.
+- Usa pooling `mean` e normalização L2 do pipeline de feature extraction.
+- Executa em `device: cpu`, `dtype: fp32`.
+- Define `env.allowRemoteModels = false`; não baixa arquivos durante inferência.
+- O diretório local deve conter `intfloat/multilingual-e5-small/` com configuração, tokenizer e artefatos ONNX compatíveis.
+- O carregamento do runtime/modelo é lazy e só acontece na primeira inferência.
+- A versão do modelo é exigida no construtor para registrar proveniência.
+
+Exemplo de composição manual:
+
+```ts
+const provider = new LocalE5EmbeddingProvider({
+  modelsPath: process.env.LOCAL_MODELS_PATH ?? "./models",
+  modelVersion: process.env.LOCAL_E5_MODEL_REVISION ?? "UNVERIFIED_LOCAL_REVISION"
+});
+```
+
+O exemplo demonstra a configuração do adaptador, não instala pesos. Antes de uso real, deve-se obter uma revisão imutável do modelo, verificar checksums e manter os arquivos localmente. O servidor continua usando MockEmbeddingProvider por padrão; o adaptador ainda não foi conectado à composição principal.
+
+**Estado de validação:** os testes automatizados usam runtime injetado e tensor sintético para verificar contrato, prefixos, formato, dimensão, normalização e bloqueio de acesso remoto. Isso não valida inferência ONNX real nem substitui benchmark de CPU/RAM. A prova com os pesos oficiais continua pendente.
