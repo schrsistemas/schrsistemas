@@ -315,3 +315,19 @@ Implementação na branch de evolução:
 **Limites:** os vetores mock não codificam semântica. Não existe similaridade vetorial, busca semântica ou modelo local real nesta entrega. Um runtime real exige avaliação separada de modelo, licença, dependências, memória, CPU e operação offline.
 
 **Validação concluída:** GitHub Actions run 43984309560 executou com sucesso npm install, npm run check, npm test e npm run build.
+
+
+## Etapa 7 — Vector Search + Hybrid Retrieval
+
+Implementação inicial adiciona `hybrid-search-service.ts` e `POST /v1/knowledge/search/hybrid` sem alterar a busca lexical padrão.
+
+- Consulta via `embedQuery()`, com provider semântico real obrigatório.
+- Filtro estrito por projeto, provider, modelo, revisão, dimensão e flags `semantic=true` / `simulated=false`.
+- Embeddings com `content_hash` divergente do chunk atual são ignorados.
+- Similaridade cosseno validada sobre vetores finitos, não nulos e normalizados.
+- Scan in-process limitado a 500 candidatos.
+- Fusão lexical/vetorial por Reciprocal Rank Fusion (RRF), sem somar escalas BM25 e cosine.
+- Sem fallback silencioso; endpoint lexical existente permanece inalterado.
+- MockEmbeddingProvider continua default e é recusado no caminho semântico.
+
+**Limitações:** o adaptador Local E5 ainda não foi testado com pesos ONNX reais; não há ANN; a busca vetorial é linear e limitada. A etapa não ativa provider local automaticamente e não altera a política de custo zero.
