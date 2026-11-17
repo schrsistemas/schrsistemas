@@ -218,3 +218,41 @@ A geração recebe instruções explícitas para usar somente o contexto e citar
 Quando não há evidências recuperadas, a resposta é uma abstenção determinística `NO_RETRIEVED_EVIDENCE`; o provider de geração não é invocado. Prompts e respostas não são persistidos por este fluxo.
 
 **Estado atual:** retrieval do RAG é lexical FTS5 (`semantic: false`). O provider padrão é MockProvider; a resposta vem marcada `generation.simulated: true` e não representa inferência real. A arquitetura usa o contrato LlmProvider/ProviderRegistry, mas a qualidade factual da geração ainda não é certificada por esta etapa.
+
+
+## Evaluation Engine — endpoints locais
+
+### POST /v1/evaluations/retrieval
+
+Executa um dataset versionado de perguntas contra o índice FTS5 atual. Request:
+```json
+{
+  "dataset_name": "manual-qa",
+  "dataset_version": "1.0.0",
+  "top_k": 5,
+  "cases": [
+    {
+      "id": "maintenance-frequency",
+      "query": "manutenção preventiva",
+      "expected_chunk_ids": ["kc_..."]
+    }
+  ]
+}
+```
+
+Dataset name/version são obrigatórios; de 1 a 500 casos; IDs de caso únicos; cada caso exige query de 2-200 caracteres e 1-500 chunk IDs esperados. `top_k` aceita 1-50 (padrão 5). A resposta inclui SHA-256 do payload canônico do dataset, métricas macro-averaged Precision@K, Recall@K, MRR e Hit Rate@K, resultados por caso e IDs ausentes. O hash permite identificar exatamente o conteúdo e os parâmetros avaliados; o dataset não é persistido pelo endpoint.
+
+### POST /v1/evaluations/grounding
+
+Request:
+```json
+{
+  "answer": "A revisão ocorre em 90 dias [cite_abc].",
+  "available_citation_ids": ["cite_abc"],
+  "abstained": false
+}
+```
+
+Retorna precisão sintática das citações (IDs citados existentes / IDs citados), cobertura sintática por sentença, IDs válidos/inválidos e estado de abstenção informado. Resposta até 50.000 caracteres; até 500 IDs disponíveis.
+
+**Limites:** estas métricas não demonstram que uma fonte implica semanticamente uma afirmação. Citation coverage é uma aproximação sintática; groundedness semântico, factualidade e qualidade de geração não são certificados. Retrieval evaluator usa somente FTS5 lexical e exige expected chunk IDs da revisão documental atual. Datasets são fornecidos no request, versionados pelo chamador e identificados por hash, sem armazenamento persistente.
