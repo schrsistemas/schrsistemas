@@ -347,3 +347,16 @@ Implementação inicial adiciona `rag-answer-service.ts` e o endpoint autenticad
 - Testes unitários para evidência, citações, abstenção e limites; teste HTTP integrado.
 
 **Limites:** retrieval RAG é lexical (`semantic: false`), não híbrido. O provider padrão é MockProvider e a resposta é marcada como simulada. Instruções de grounding não garantem correção; avaliação automática de groundedness, checagem de citações geradas e inferência local real continuam pendentes.
+
+
+## Etapa 9 — Evaluation Engine inicial
+
+Implementação inicial adiciona `evaluation-service.ts` e dois endpoints autenticados:
+
+- `POST /v1/evaluations/retrieval`: executa datasets versionados no índice FTS5; retorna hash SHA-256 do dataset, Precision@K, Recall@K, MRR, Hit Rate@K e detalhes por caso.
+- `POST /v1/evaluations/grounding`: valida associação sintática de citações, calcula citation precision e cobertura de sentenças, identifica IDs inválidos e reporta estado de abstenção.
+- Datasets são versionados pelo consumidor via nome/versão e identificados por hash; não são persistidos no SQLite.
+- Sem provider LLM, API paga ou chamada externa.
+- Testes unitários de métricas, determinismo, dados inválidos e citações; testes HTTP dos dois endpoints.
+
+**Limites:** avaliação de retrieval cobre FTS5 lexical apenas. Avaliação de grounding é estrutural/sintática, não prova entailment ou factualidade. Abstenção é reportada como metadado fornecido, não julgada semanticamente. O dataset usa chunk IDs da revisão atual do documento.
