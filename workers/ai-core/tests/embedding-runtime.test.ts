@@ -58,7 +58,7 @@ test("Embedding Runtime isolates projects and cascades old vectors on document r
     source_id: source.id, external_id: "manual-1", title: "Documento", content: "first version content"
   }) as { id: string };
   await indexKnowledgeDocumentEmbeddings(db, "project-a", first.id, new MockEmbeddingProvider());
-  assert.equal(listKnowledgeDocumentEmbeddings(db, "project-b", first.id).length, 0);
+  assert.throws(() => listKnowledgeDocumentEmbeddings(db, "project-b", first.id), /Knowledge document not found/);
   ingestKnowledgeDocument(db, "project-a", {
     source_id: source.id, external_id: "manual-1", title: "Documento", content: "replacement version content"
   });
