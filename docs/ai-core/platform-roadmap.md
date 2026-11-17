@@ -298,3 +298,20 @@ Implementação inicial na branch de evolução:
 Limites: estimativa de tokens por ceil(chars / 4), não tokenizer real; estratégia permanece lexical (semantic: false); nenhuma geração RAG ou alegação de groundedness foi implementada.
 
 Validação concluída: GitHub Actions run 43983137586 executou com sucesso npm install, npm run check, npm test e npm run build.
+
+
+## 10.7. Progresso da Etapa 5 — Embedding Runtime inicial
+
+Implementação na branch de evolução:
+- Contrato `EmbeddingProvider` com provider, modelo, versão, dimensão e flags de simulação/semântica.
+- `MockEmbeddingProvider` determinístico hash-derived, dimensão 32, marcado `simulated: true` e `semantic: false`.
+- Contrato `VectorStore` e adaptador SQLite para persistência e listagem de vetores.
+- Tabela `knowledge_embeddings`, com hash do chunk, proveniência, metadados do modelo e vetor serializado.
+- Serviço de indexação em lotes de até 32 chunks, idempotente por chunk/provider/model/version.
+- Atualização de documentos remove vetores anteriores por cascata.
+- Endpoints autenticados para indexação e consulta dos vetores de um documento.
+- Testes unitários de determinismo, normalização, dimensão, idempotência, isolamento e cascata; teste HTTP integrado.
+
+**Limites:** os vetores mock não codificam semântica. Não existe similaridade vetorial, busca semântica ou modelo local real nesta entrega. Um runtime real exige avaliação separada de modelo, licença, dependências, memória, CPU e operação offline.
+
+**Validação:** CI desta etapa pendente.
