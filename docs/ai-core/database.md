@@ -21,3 +21,7 @@ Prompts de chat, instruções e respostas não são armazenados em ai_requests. 
 
 ## Limitação de autorização
 A autenticação inicial usa uma chave local e o escopo de projeto é conferido nas operações. O modelo avançado de múltiplas chaves e múltiplos projetos ainda requer revisão antes de qualquer exposição pública. O serviço permanece local.
+
+- knowledge_embeddings: vetores por chunk, projeto, fonte/documento, hash de conteúdo, provider/modelo/versão, dimensão, flags simulated/semantic e JSON do vetor. Chaves únicas por chunk/provider/model/version; índices são removidos por cascata quando o chunk/documento é removido.
+
+A tabela de embeddings é criada de forma aditiva com `CREATE TABLE IF NOT EXISTS`; não altera documentos ou chunks existentes. Vetores armazenados pelo MockEmbeddingProvider são sintéticos e marcados `simulated=1`, `semantic=0`.
