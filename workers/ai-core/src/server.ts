@@ -18,7 +18,7 @@ import {
   listKnowledgeSources
 } from "./knowledge/knowledge-service.js";
 import { searchKnowledge } from "./knowledge/knowledge-search-service.js";
-import { searchKnowledgeHybrid } from "./knowledge/hybrid-search-service.js";
+import { searchKnowledgeHybrid, type QueryEmbeddingProvider } from "./knowledge/hybrid-search-service.js";
 import { buildKnowledgeContext } from "./knowledge/context-builder.js";
 import { MockEmbeddingProvider } from "./knowledge/embedding-provider.js";
 import type { EmbeddingProvider } from "./knowledge/embedding-provider.js";
@@ -259,9 +259,10 @@ export function createAiCoreServer(deps: Dependencies) {
         if (body.document_id !== undefined && (typeof body.document_id !== "string" || body.document_id.length === 0)) {
           throw new KnowledgeServiceError("KNOWLEDGE_SEARCH_VALIDATION_ERROR", 400, "document_id must be a non-empty string.");
         }
-        const data = await searchKnowledgeHybrid(deps.db, auth.id, body.query, embeddingProvider as EmbeddingProvider & {
-          embedQuery?: (texts: string[]) => Promise<import("./knowledge/embedding-provider.js").EmbeddingResult>;
-        }, {
+        if (typeof (embeddingProvider as unknown as { embedQuery?: unknown }).embedQuery !== "function") {
+          throw new KnowledgeServiceError("SEMANTIC_PROVIDER_UNAVAILABLE", 503, "The configured embedding provider does not support query embeddings.");
+        }
+        const data = await searchKnowledgeHybrid(deps.db, auth.id, body.query, embeddingProvider as EmbeddingProvider & QueryEmbeddingProvider, {
           ...(typeof body.source_id === "string" ? { sourceId: body.source_id } : {}),
           ...(typeof body.document_id === "string" ? { documentId: body.document_id } : {}),
           ...(body.limit !== undefined ? { limit: body.limit as number } : {}),
