@@ -176,6 +176,15 @@ test("HTTP gateway enforces auth, project scope and returns mock completion", as
 
 
 
+  const hybridWithoutRealProvider = await fetch(base + "/v1/knowledge/search/hybrid", {
+    method: "POST",
+    headers: {"content-type":"application/json","x-api-key":apiKey},
+    body: JSON.stringify({query:"teste"})
+  });
+  assert.equal(hybridWithoutRealProvider.status, 503);
+  const hybridUnavailablePayload = await hybridWithoutRealProvider.json() as {error:{code:string}};
+  assert.equal(hybridUnavailablePayload.error.code, "SEMANTIC_PROVIDER_UNAVAILABLE");
+
   const usage = await fetch(base + "/v1/usage", {headers:{"x-api-key":apiKey}});
   assert.equal(usage.status, 200);
   const totals = await usage.json() as {data:{requests:number}};
