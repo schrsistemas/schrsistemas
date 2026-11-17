@@ -191,3 +191,30 @@ O scan vetorial inicial é in-process e limitado a no máximo 500 candidatos por
 Resposta identifica `strategy: hybrid_rrf`, `semantic: true`, metadados do modelo, quantidade de candidatos e campos `lexical_rank`, `vector_rank`, `lexical_score`, `vector_score` e `hybrid_score`. Não há fallback silencioso para lexical-only. O provider padrão continua sendo MockEmbeddingProvider, portanto esta rota retorna 503 até que um provider semântico real com embedQuery esteja injetado e embeddings reais compatíveis tenham sido indexados.
 
 Erros adicionais: SEMANTIC_PROVIDER_UNAVAILABLE 503, EMBEDDING_PROVIDER_INVALID_OUTPUT 502, VECTOR_DATA_INVALID 500, VECTOR_DIMENSION_MISMATCH 500.
+
+
+## POST /v1/knowledge/answer — RAG answer pipeline
+
+Autenticado por `X-API-Key`. Executa retrieval lexical FTS5, montagem de contexto limitado e geração pelo modelo selecionado no ProviderRegistry.
+
+Request:
+```json
+{
+  "query": "Qual é a periodicidade da manutenção preventiva?",
+  "model": "schr-mock-v1",
+  "source_id": "ks_...",
+  "document_id": "kd_...",
+  "retrieval_limit": 10,
+  "max_context_tokens": 2000,
+  "max_context_chars": 8000,
+  "max_output_tokens": 512
+}
+```
+
+`query` é obrigatório (2-200 caracteres). `model` é opcional e usa o modelo padrão do registry; modelos não registrados retornam `MODEL_NOT_AVAILABLE`. `retrieval_limit`: 1-50; `max_context_tokens`: 1-8000; `max_context_chars`: 1-32000; `max_output_tokens`: 1-4096.
+
+A geração recebe instruções explícitas para usar somente o contexto e citar IDs de referência. Documentos recuperados são tratados como dados, não como instruções. O endpoint retorna estratégia de retrieval, indicador semântico, estimativa e truncamento do contexto, citações com proveniência/offset/hash e metadados de geração.
+
+Quando não há evidências recuperadas, a resposta é uma abstenção determinística `NO_RETRIEVED_EVIDENCE`; o provider de geração não é invocado. Prompts e respostas não são persistidos por este fluxo.
+
+**Estado atual:** retrieval do RAG é lexical FTS5 (`semantic: false`). O provider padrão é MockProvider; a resposta vem marcada `generation.simulated: true` e não representa inferência real. A arquitetura usa o contrato LlmProvider/ProviderRegistry, mas a qualidade factual da geração ainda não é certificada por esta etapa.
