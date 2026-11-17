@@ -17,8 +17,10 @@ export interface StoredEmbedding {
   created_at: string;
 }
 
+export type NewStoredEmbedding = Omit<StoredEmbedding, "created_at">;
+
 export interface VectorStore {
-  upsert(embedding: Omit<StoredEmbedding, "id" | "created_at">): void;
+  upsert(embedding: NewStoredEmbedding): void;
   listByDocument(projectId: string, documentId: string): StoredEmbedding[];
   deleteByDocument(projectId: string, documentId: string): number;
 }
