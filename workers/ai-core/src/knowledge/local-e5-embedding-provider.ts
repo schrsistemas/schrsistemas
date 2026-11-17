@@ -44,14 +44,16 @@ export interface LocalE5EmbeddingProviderOptions {
  * Para consultas, use embedQuery(), que aplica "query:".
  */
 export class LocalE5EmbeddingProvider implements EmbeddingProvider {
-  readonly descriptor = {
-    provider: "transformers-js-onnx",
-    model: "intfloat/multilingual-e5-small",
-    modelVersion: "",
-    dimensions: 384,
-    simulated: false,
-    semantic: true
-  } as const;
+  get descriptor() {
+    return {
+      provider: "transformers-js-onnx",
+      model: this.modelId,
+      modelVersion: this.modelVersion,
+      dimensions: 384,
+      simulated: false,
+      semantic: true
+    };
+  }
 
   private readonly modelsPath: string;
   private readonly modelId: string;
@@ -72,10 +74,6 @@ export class LocalE5EmbeddingProvider implements EmbeddingProvider {
     this.runtimeLoader = options.runtimeLoader ?? (async () => {
       const runtime = await import("@huggingface/transformers");
       return runtime as unknown as TransformersRuntime;
-    });
-    Object.defineProperty(this.descriptor, "modelVersion", {
-      value: this.modelVersion,
-      enumerable: true
     });
   }
 
