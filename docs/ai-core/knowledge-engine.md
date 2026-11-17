@@ -180,3 +180,14 @@ A busca inicial calcula similaridade cosseno em memória, limitada por `candidat
 A rota `POST /v1/knowledge/search/hybrid` é explícita. A busca lexical `GET /v1/knowledge/search` mantém o comportamento anterior. Não existe fallback silencioso se FTS5 ou o provider semântico estiver indisponível. O provider default permanece MockEmbeddingProvider; portanto a recuperação híbrida real depende da injeção de LocalE5EmbeddingProvider e da indexação com pesos ONNX locais verificados.
 
 **Limitação operacional:** o limite de 500 candidatos controla memória e custo de CPU, mas o scan é linear e não substitui um índice vetorial ANN. Em bases maiores será necessária uma estratégia ANN local ou particionamento/paginação cuidadosamente projetado.
+
+
+## RAG Answer Pipeline — etapa 8
+
+O serviço `rag-answer-service.ts` coordena retrieval lexical FTS5, montagem de contexto pelo Context Builder e geração pelo provider resolvido no ProviderRegistry. O endpoint é `POST /v1/knowledge/answer`.
+
+O prompt de geração delimita o contexto, exige fundamentação nas evidências recuperadas, proíbe tratar instruções nos documentos como comandos e solicita referências no formato `[cite_id]`. A resposta inclui as citações recuperadas com IDs de chunk/documento/fonte, offsets e hash, além de estratégia e metadados do provider.
+
+Se não houver chunks/citações, o pipeline retorna `abstained: true` e `NO_RETRIEVED_EVIDENCE`, sem chamar o gerador. Não persiste prompt ou resposta. O provider padrão segue sendo MockProvider, claramente marcado `generation.simulated: true`.
+
+**Limitações:** retrieval do endpoint RAG é lexical, não híbrido; o Context Builder estima tokens por caracteres; instruções de grounding são orientação ao modelo e não constituem prova automática de factualidade. A etapa não implementa avaliador automático de groundedness nem validação semântica das citações emitidas pelo modelo.
