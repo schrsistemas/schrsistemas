@@ -6,6 +6,11 @@ on:
     paths:
       - "workers/ai-core/**"
       - ".github/workflows/ai-core-check.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "workers/ai-core/**"
+      - ".github/workflows/ai-core-check.yml"
 
 permissions:
   contents: read

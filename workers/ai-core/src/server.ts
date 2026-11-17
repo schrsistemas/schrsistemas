@@ -5,16 +5,44 @@ import { pathToFileURL } from "node:url";
 import type Database from "better-sqlite3";
 import { loadConfig } from "./config.js";
 import { openDatabase } from "./database.js";
-import { MockProvider } from "./providers/mock.provider.js";
-import { OpenAIProvider } from "./providers/openai.provider.js";
+import { createDefaultProviderRegistry } from "./providers/default-provider-registry.js";
+import type { ProviderRegistry } from "./providers/provider-registry.js";
 import { validateChatRequest } from "./validation.js";
 import type { ChatRequest } from "./types.js";
+import {
+  createKnowledgeSource,
+  getKnowledgeDocument,
+  ingestKnowledgeDocument,
+  KnowledgeServiceError,
+  listKnowledgeDocuments,
+  listKnowledgeSources
+} from "./knowledge/knowledge-service.js";
+import { searchKnowledge } from "./knowledge/knowledge-search-service.js";
+import { searchKnowledgeHybrid, type QueryEmbeddingProvider } from "./knowledge/hybrid-search-service.js";
+import { buildKnowledgeContext } from "./knowledge/context-builder.js";
+import { answerFromKnowledge } from "./knowledge/rag-answer-service.js";
+import { evaluateAnswerGrounding, evaluateKnowledgeRetrieval } from "./knowledge/evaluation-service.js";
+import { MockEmbeddingProvider } from "./knowledge/embedding-provider.js";
+import type { EmbeddingProvider } from "./knowledge/embedding-provider.js";
+import { indexKnowledgeDocumentEmbeddings, listKnowledgeDocumentEmbeddings } from "./knowledge/embedding-service.js";
+import {
+  addPromptVersion,
+  createPrompt,
+  getPrompt,
+  listPrompts,
+  PromptServiceError,
+  renderPrompt
+} from "./prompts/prompt-service.js";
 
 interface Dependencies {
   db: Database.Database;
   maxRequestBytes: number;
   rateLimitWindowMs: number;
   rateLimitMaxRequests: number;
+  /** Registry injetável para composição local e testes. */
+  providerRegistry?: ProviderRegistry;
+  /** Provider de embeddings injetável; o padrão é mock explicitamente simulado. */
+  embeddingProvider?: EmbeddingProvider;
 }
 
 interface AuthenticatedProject { id: string; }
@@ -30,6 +58,38 @@ function send(res: ServerResponse, status: number, body: unknown): void {
     "referrer-policy": "no-referrer"
   });
   res.end(JSON.stringify(body));
+}
+
+function sendPromptError(res: ServerResponse, error: unknown, id: string): void {
+  if (error instanceof PromptServiceError) {
+    send(res, error.status, { error: { code: error.code, message: error.message, request_id: id } });
+    return;
+  }
+  if (error instanceof SyntaxError) {
+    send(res, 400, { error: { code: "INVALID_JSON", message: "Body must be valid JSON.", request_id: id } });
+    return;
+  }
+  if (error instanceof RangeError) {
+    send(res, 413, { error: { code: "PAYLOAD_TOO_LARGE", message: "Request body exceeds configured limit.", request_id: id } });
+    return;
+  }
+  send(res, 500, { error: { code: "PROMPT_INTERNAL_ERROR", message: "Prompt operation failed.", request_id: id } });
+}
+
+function sendKnowledgeError(res: ServerResponse, error: unknown, id: string): void {
+  if (error instanceof KnowledgeServiceError) {
+    send(res, error.status, { error: { code: error.code, message: error.message, request_id: id } });
+    return;
+  }
+  if (error instanceof SyntaxError) {
+    send(res, 400, { error: { code: "INVALID_JSON", message: "Body must be valid JSON.", request_id: id } });
+    return;
+  }
+  if (error instanceof RangeError) {
+    send(res, 413, { error: { code: "PAYLOAD_TOO_LARGE", message: "Request body exceeds configured limit.", request_id: id } });
+    return;
+  }
+  send(res, 500, { error: { code: "KNOWLEDGE_INTERNAL_ERROR", message: "Knowledge operation failed.", request_id: id } });
 }
 
 function requestId(): string {
@@ -81,8 +141,8 @@ async function readJson(req: IncomingMessage, maxBytes: number): Promise<unknown
 }
 
 export function createAiCoreServer(deps: Dependencies) {
-  const mock = new MockProvider();
-  const openai = new OpenAIProvider();
+  const providers = deps.providerRegistry ?? createDefaultProviderRegistry();
+  const embeddingProvider = deps.embeddingProvider ?? new MockEmbeddingProvider();
 
   return createServer(async (req, res) => {
     const id = requestId();
@@ -92,8 +152,8 @@ export function createAiCoreServer(deps: Dependencies) {
       send(res, 200, {
         status: "ok",
         service: "schr-ai-core",
-        version: "0.1.0",
-        provider: "mock",
+        version: "0.2.0",
+        provider: "registry",
         uptime_ms: Date.now() - startedAt
       });
       return;
@@ -108,10 +168,10 @@ export function createAiCoreServer(deps: Dependencies) {
     const keyHash = createHash("sha256").update(String(req.headers["x-api-key"])).digest("hex");
 
     if (req.method === "GET" && url.pathname === "/v1/models") {
-      send(res, 200, { data: [
-        { id: "schr-mock-v1", provider: "mock", enabled: true },
-        { id: "openai-adapter", provider: "openai", enabled: openai.enabled, reason: "Disabled by zero-cost policy" }
-      ] });
+      send(res, 200, {
+        data: providers.listModels(),
+        disabled: [{ id: "openai-adapter", provider: "openai", enabled: false, reason: "Disabled by zero-cost policy" }]
+      });
       return;
     }
 
@@ -120,6 +180,274 @@ export function createAiCoreServer(deps: Dependencies) {
         "SELECT COUNT(*) AS requests, COALESCE(SUM(input_tokens),0) AS input_tokens, COALESCE(SUM(output_tokens),0) AS output_tokens, COALESCE(SUM(total_tokens),0) AS total_tokens FROM ai_requests WHERE project_id = ? AND status = 'completed'"
       ).get(auth.id) as { requests: number; input_tokens: number; output_tokens: number; total_tokens: number };
       send(res, 200, { data: row, note: "Mock token counts are estimates, not billable provider usage." });
+      return;
+    }
+
+    if (req.method === "GET" && url.pathname === "/v1/prompts") {
+      send(res, 200, { data: listPrompts(deps.db, auth.id) });
+      return;
+    }
+
+    if (req.method === "POST" && url.pathname === "/v1/prompts") {
+      try {
+        const body = await readJson(req, deps.maxRequestBytes);
+        send(res, 201, { data: createPrompt(deps.db, auth.id, body) });
+      } catch (error) {
+        sendPromptError(res, error, id);
+      }
+      return;
+    }
+
+    const promptVersionMatch = url.pathname.match(/^\/v1\/prompts\/([a-zA-Z0-9_-]+)\/versions$/);
+    if (req.method === "POST" && promptVersionMatch) {
+      try {
+        const body = await readJson(req, deps.maxRequestBytes);
+        send(res, 201, { data: addPromptVersion(deps.db, auth.id, promptVersionMatch[1] ?? "", body) });
+      } catch (error) {
+        sendPromptError(res, error, id);
+      }
+      return;
+    }
+
+    const promptRenderMatch = url.pathname.match(/^\/v1\/prompts\/([a-zA-Z0-9_-]+)\/render$/);
+    if (req.method === "POST" && promptRenderMatch) {
+      try {
+        const body = await readJson(req, deps.maxRequestBytes);
+        send(res, 200, { data: renderPrompt(deps.db, auth.id, promptRenderMatch[1] ?? "", body) });
+      } catch (error) {
+        sendPromptError(res, error, id);
+      }
+      return;
+    }
+
+    const promptMatch = url.pathname.match(/^\/v1\/prompts\/([a-zA-Z0-9_-]+)$/);
+    if (req.method === "GET" && promptMatch) {
+      try {
+        send(res, 200, { data: getPrompt(deps.db, auth.id, promptMatch[1] ?? "") });
+      } catch (error) {
+        sendPromptError(res, error, id);
+      }
+      return;
+    }
+
+    if (req.method === "GET" && url.pathname === "/v1/knowledge/search") {
+      try {
+        const rawLimit = url.searchParams.get("limit");
+        const limit = rawLimit === null ? 10 : Number(rawLimit);
+        const sourceId = url.searchParams.get("source_id");
+        const documentId = url.searchParams.get("document_id");
+        const data = searchKnowledge(deps.db, auth.id, url.searchParams.get("q"), {
+          ...(sourceId ? { sourceId } : {}),
+          ...(documentId ? { documentId } : {}),
+          limit
+        });
+        send(res, 200, { data });
+      } catch (error) {
+        sendKnowledgeError(res, error, id);
+      }
+      return;
+    }
+
+    if (req.method === "POST" && url.pathname === "/v1/knowledge/search/hybrid") {
+      try {
+        const raw = await readJson(req, deps.maxRequestBytes);
+        if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
+          throw new KnowledgeServiceError("KNOWLEDGE_SEARCH_VALIDATION_ERROR", 400, "Request body must be a JSON object.");
+        }
+        const body = raw as Record<string, unknown>;
+        if (body.source_id !== undefined && (typeof body.source_id !== "string" || body.source_id.length === 0)) {
+          throw new KnowledgeServiceError("KNOWLEDGE_SEARCH_VALIDATION_ERROR", 400, "source_id must be a non-empty string.");
+        }
+        if (body.document_id !== undefined && (typeof body.document_id !== "string" || body.document_id.length === 0)) {
+          throw new KnowledgeServiceError("KNOWLEDGE_SEARCH_VALIDATION_ERROR", 400, "document_id must be a non-empty string.");
+        }
+        if (typeof (embeddingProvider as unknown as { embedQuery?: unknown }).embedQuery !== "function") {
+          throw new KnowledgeServiceError("SEMANTIC_PROVIDER_UNAVAILABLE", 503, "The configured embedding provider does not support query embeddings.");
+        }
+        const data = await searchKnowledgeHybrid(deps.db, auth.id, body.query, embeddingProvider as EmbeddingProvider & QueryEmbeddingProvider, {
+          ...(typeof body.source_id === "string" ? { sourceId: body.source_id } : {}),
+          ...(typeof body.document_id === "string" ? { documentId: body.document_id } : {}),
+          ...(body.limit !== undefined ? { limit: body.limit as number } : {}),
+          ...(body.candidate_limit !== undefined ? { candidateLimit: body.candidate_limit as number } : {}),
+          ...(body.rrf_k !== undefined ? { rrfK: body.rrf_k as number } : {})
+        });
+        send(res, 200, { data });
+      } catch (error) {
+        sendKnowledgeError(res, error, id);
+      }
+      return;
+    }
+
+    if (req.method === "POST" && url.pathname === "/v1/knowledge/embeddings/index") {
+      try {
+        const raw = await readJson(req, deps.maxRequestBytes);
+        if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
+          throw new KnowledgeServiceError("EMBEDDING_VALIDATION_ERROR", 400, "Request body must be a JSON object.");
+        }
+        const body = raw as Record<string, unknown>;
+        if (typeof body.document_id !== "string" || body.document_id.length === 0) {
+          throw new KnowledgeServiceError("EMBEDDING_VALIDATION_ERROR", 400, "document_id is required.");
+        }
+        const data = await indexKnowledgeDocumentEmbeddings(deps.db, auth.id, body.document_id, embeddingProvider);
+        send(res, 200, { data });
+      } catch (error) {
+        sendKnowledgeError(res, error, id);
+      }
+      return;
+    }
+
+    if (req.method === "GET" && url.pathname === "/v1/knowledge/embeddings") {
+      try {
+        const documentId = url.searchParams.get("document_id");
+        if (!documentId) {
+          throw new KnowledgeServiceError("EMBEDDING_VALIDATION_ERROR", 400, "document_id query parameter is required.");
+        }
+        send(res, 200, { data: listKnowledgeDocumentEmbeddings(deps.db, auth.id, documentId) });
+      } catch (error) {
+        sendKnowledgeError(res, error, id);
+      }
+      return;
+    }
+
+    if (req.method === "POST" && url.pathname === "/v1/evaluations/retrieval") {
+      try {
+        const body = await readJson(req, deps.maxRequestBytes);
+        send(res, 200, { data: evaluateKnowledgeRetrieval(deps.db, auth.id, body) });
+      } catch (error) {
+        sendKnowledgeError(res, error, id);
+      }
+      return;
+    }
+
+    if (req.method === "POST" && url.pathname === "/v1/evaluations/grounding") {
+      try {
+        const body = await readJson(req, deps.maxRequestBytes);
+        send(res, 200, { data: evaluateAnswerGrounding(body) });
+      } catch (error) {
+        sendKnowledgeError(res, error, id);
+      }
+      return;
+    }
+
+    if (req.method === "POST" && url.pathname === "/v1/knowledge/answer") {
+      try {
+        const raw = await readJson(req, deps.maxRequestBytes);
+        if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
+          throw new KnowledgeServiceError("RAG_VALIDATION_ERROR", 400, "Request body must be a JSON object.");
+        }
+        const body = raw as Record<string, unknown>;
+        if (body.source_id !== undefined && (typeof body.source_id !== "string" || body.source_id.length === 0)) {
+          throw new KnowledgeServiceError("RAG_VALIDATION_ERROR", 400, "source_id must be a non-empty string.");
+        }
+        if (body.document_id !== undefined && (typeof body.document_id !== "string" || body.document_id.length === 0)) {
+          throw new KnowledgeServiceError("RAG_VALIDATION_ERROR", 400, "document_id must be a non-empty string.");
+        }
+        const model = body.model === undefined ? undefined : body.model;
+        if (model !== undefined && (typeof model !== "string" || model.length < 1 || model.length > 80)) {
+          throw new KnowledgeServiceError("RAG_VALIDATION_ERROR", 400, "model must contain 1-80 characters.");
+        }
+        const selection = providers.resolve(model as string | undefined);
+        if (!selection) {
+          throw new KnowledgeServiceError("MODEL_NOT_AVAILABLE", 400, "Requested generation model is not registered.");
+        }
+        const data = await answerFromKnowledge(deps.db, auth.id, body.query, selection.modelId, selection.provider, {
+          ...(typeof body.source_id === "string" ? { sourceId: body.source_id } : {}),
+          ...(typeof body.document_id === "string" ? { documentId: body.document_id } : {}),
+          ...(body.retrieval_limit !== undefined ? { retrievalLimit: body.retrieval_limit as number } : {}),
+          ...(body.max_context_tokens !== undefined ? { maxContextTokens: body.max_context_tokens as number } : {}),
+          ...(body.max_context_chars !== undefined ? { maxContextChars: body.max_context_chars as number } : {}),
+          ...(body.max_output_tokens !== undefined ? { maxOutputTokens: body.max_output_tokens as number } : {})
+        });
+        send(res, 200, { data });
+      } catch (error) {
+        sendKnowledgeError(res, error, id);
+      }
+      return;
+    }
+
+    if (req.method === "POST" && url.pathname === "/v1/knowledge/context") {
+      try {
+        const raw = await readJson(req, deps.maxRequestBytes);
+        if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
+          throw new KnowledgeServiceError("KNOWLEDGE_CONTEXT_VALIDATION_ERROR", 400, "Request body must be a JSON object.");
+        }
+        const body = raw as Record<string, unknown>;
+        const sourceId = body.source_id;
+        const documentId = body.document_id;
+        const limit = body.limit ?? 10;
+        const maxContextTokens = body.max_context_tokens ?? 2000;
+        const maxContextChars = body.max_context_chars ?? 8000;
+        if (sourceId !== undefined && (typeof sourceId !== "string" || sourceId.length === 0)) {
+          throw new KnowledgeServiceError("KNOWLEDGE_CONTEXT_VALIDATION_ERROR", 400, "source_id must be a non-empty string.");
+        }
+        if (documentId !== undefined && (typeof documentId !== "string" || documentId.length === 0)) {
+          throw new KnowledgeServiceError("KNOWLEDGE_CONTEXT_VALIDATION_ERROR", 400, "document_id must be a non-empty string.");
+        }
+        if (!Number.isInteger(limit) || (limit as number) < 1 || (limit as number) > 50) {
+          throw new KnowledgeServiceError("KNOWLEDGE_CONTEXT_VALIDATION_ERROR", 400, "limit must be an integer from 1 to 50.");
+        }
+        const retrieval = searchKnowledge(deps.db, auth.id, body.query, {
+          ...(typeof sourceId === "string" ? { sourceId } : {}),
+          ...(typeof documentId === "string" ? { documentId } : {}),
+          limit: limit as number
+        });
+        const context = buildKnowledgeContext(
+          typeof body.query === "string" ? body.query : "",
+          retrieval.results as unknown as Parameters<typeof buildKnowledgeContext>[1],
+          {
+            maxContextTokens: maxContextTokens as number,
+            maxContextChars: maxContextChars as number
+          }
+        );
+        send(res, 200, { data: { retrieval, context } });
+      } catch (error) {
+        sendKnowledgeError(res, error, id);
+      }
+      return;
+    }
+
+    if (req.method === "GET" && url.pathname === "/v1/knowledge/sources") {
+      send(res, 200, { data: listKnowledgeSources(deps.db, auth.id) });
+      return;
+    }
+
+    if (req.method === "POST" && url.pathname === "/v1/knowledge/sources") {
+      try {
+        const body = await readJson(req, deps.maxRequestBytes);
+        send(res, 201, { data: createKnowledgeSource(deps.db, auth.id, body) });
+      } catch (error) {
+        sendKnowledgeError(res, error, id);
+      }
+      return;
+    }
+
+    if (req.method === "GET" && url.pathname === "/v1/knowledge/documents") {
+      const sourceId = url.searchParams.get("source_id") ?? undefined;
+      try {
+        send(res, 200, { data: listKnowledgeDocuments(deps.db, auth.id, sourceId) });
+      } catch (error) {
+        sendKnowledgeError(res, error, id);
+      }
+      return;
+    }
+
+    if (req.method === "POST" && url.pathname === "/v1/knowledge/documents") {
+      try {
+        const body = await readJson(req, deps.maxRequestBytes);
+        send(res, 201, { data: ingestKnowledgeDocument(deps.db, auth.id, body) });
+      } catch (error) {
+        sendKnowledgeError(res, error, id);
+      }
+      return;
+    }
+
+    const knowledgeDocumentMatch = url.pathname.match(/^\/v1\/knowledge\/documents\/([a-zA-Z0-9_-]+)$/);
+    if (req.method === "GET" && knowledgeDocumentMatch) {
+      try {
+        send(res, 200, { data: getKnowledgeDocument(deps.db, auth.id, knowledgeDocumentMatch[1] ?? "") });
+      } catch (error) {
+        sendKnowledgeError(res, error, id);
+      }
       return;
     }
 
@@ -175,6 +503,18 @@ export function createAiCoreServer(deps: Dependencies) {
       return;
     }
 
+    const selection = providers.resolve(input.model);
+    if (!selection) {
+      send(res, 400, {
+        error: {
+          code: "MODEL_NOT_AVAILABLE",
+          message: "Requested model is not registered or enabled for this instance.",
+          request_id: id
+        }
+      });
+      return;
+    }
+
     if (idem) {
       const previous = deps.db.prepare(
         "SELECT id, provider, model, status, input_tokens, output_tokens, total_tokens FROM ai_requests WHERE project_id = ? AND idempotency_key = ?"
@@ -187,17 +527,17 @@ export function createAiCoreServer(deps: Dependencies) {
 
     const started = Date.now();
     try {
-      const result = await mock.generate(input);
+      const result = await selection.provider.generate({ ...input, model: selection.modelId });
       const duration = Date.now() - started;
       deps.db.prepare(
         "INSERT INTO ai_requests(id,project_id,provider,model,status,input_tokens,output_tokens,total_tokens,duration_ms,idempotency_key) VALUES(?,?,? ,?,'completed',?,?,?,?,?)"
-      ).run(id, auth.id, mock.name, result.model, result.usage.input_tokens, result.usage.output_tokens,
+      ).run(id, auth.id, selection.provider.name, result.model, result.usage.input_tokens, result.usage.output_tokens,
         result.usage.total_tokens, duration, idem ?? null);
 
       send(res, 200, {
         id,
         status: "completed",
-        provider: mock.name,
+        provider: selection.provider.name,
         model: result.model,
         output: result.output,
         usage: result.usage,
