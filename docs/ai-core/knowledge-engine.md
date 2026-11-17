@@ -167,3 +167,16 @@ const provider = new LocalE5EmbeddingProvider({
 O exemplo demonstra a configuração do adaptador, não instala pesos. Antes de uso real, deve-se obter uma revisão imutável do modelo, verificar checksums e manter os arquivos localmente. O servidor continua usando MockEmbeddingProvider por padrão; o adaptador ainda não foi conectado à composição principal.
 
 **Estado de validação:** os testes automatizados usam runtime injetado e tensor sintético para verificar contrato, prefixos, formato, dimensão, normalização e bloqueio de acesso remoto. Isso não valida inferência ONNX real nem substitui benchmark de CPU/RAM. A prova com os pesos oficiais continua pendente.
+
+
+## Vector Search + Hybrid Retrieval — etapa 7
+
+O serviço `hybrid-search-service.ts` integra a consulta vetorial com FTS5 sem alterar o endpoint lexical existente. A consulta vetorial usa `embedQuery()` e só aceita providers com `semantic: true` e `simulated: false`. O modelo e a revisão precisam coincidir exatamente com os metadados persistidos.
+
+A consulta SQL filtra sempre `project_id`, provider, modelo, versão, dimensão, flags e `content_hash` atual do chunk. Assim, vetores antigos após reprocessamento documental não participam da recuperação. JSON inválido, dimensão incorreta, NaN/Infinity, vetor zero ou norma fora da tolerância são tratados como dados corrompidos, sem ranking silenciosamente incorreto.
+
+A busca inicial calcula similaridade cosseno em memória, limitada por `candidate_limit` de 1 a 500. O ranking lexical FTS5 e o vetorial são combinados por Reciprocal Rank Fusion: `1/(k + rank)` para cada canal, com `k=60` padrão. Não se somam diretamente BM25 e cosseno porque suas escalas são incompatíveis.
+
+A rota `POST /v1/knowledge/search/hybrid` é explícita. A busca lexical `GET /v1/knowledge/search` mantém o comportamento anterior. Não existe fallback silencioso se FTS5 ou o provider semântico estiver indisponível. O provider default permanece MockEmbeddingProvider; portanto a recuperação híbrida real depende da injeção de LocalE5EmbeddingProvider e da indexação com pesos ONNX locais verificados.
+
+**Limitação operacional:** o limite de 500 candidatos controla memória e custo de CPU, mas o scan é linear e não substitui um índice vetorial ANN. Em bases maiores será necessária uma estratégia ANN local ou particionamento/paginação cuidadosamente projetado.
