@@ -191,3 +191,16 @@ O prompt de geração delimita o contexto, exige fundamentação nas evidências
 Se não houver chunks/citações, o pipeline retorna `abstained: true` e `NO_RETRIEVED_EVIDENCE`, sem chamar o gerador. Não persiste prompt ou resposta. O provider padrão segue sendo MockProvider, claramente marcado `generation.simulated: true`.
 
 **Limitações:** retrieval do endpoint RAG é lexical, não híbrido; o Context Builder estima tokens por caracteres; instruções de grounding são orientação ao modelo e não constituem prova automática de factualidade. A etapa não implementa avaliador automático de groundedness nem validação semântica das citações emitidas pelo modelo.
+
+
+## Evaluation Engine
+
+A avaliação local está disponível em `evaluation-service.ts`:
+
+- Retrieval evaluation executa cada query do dataset no FTS5 atual e compara os chunk IDs retornados com os IDs relevantes esperados.
+- Métricas macro por caso: Precision@K (hits/K), Recall@K (hits/quantidade relevante), MRR e Hit Rate@K.
+- Cada execução retorna nome/versão do dataset e SHA-256 do payload canônico, incluindo parâmetros e casos, para reprodutibilidade.
+- Grounding evaluation verifica se referências sintáticas da resposta pertencem à lista de citações disponibilizadas e calcula citation precision e sentence-level citation coverage.
+- Estado de abstenção é reportado como metadado de entrada.
+
+Não há inferência por LLM nem dependência externa. O dataset não é persistido; o chamador mantém as versões e fornece o conteúdo em cada execução. A avaliação de grounding é estrutural: não verifica entailment, relevância semântica ou verdade factual. Retrieval continua lexical (`semantic: false`).
