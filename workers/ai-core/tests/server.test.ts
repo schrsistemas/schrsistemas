@@ -183,6 +183,49 @@ test("HTTP gateway enforces auth, project scope and returns mock completion", as
   assert.equal(noEvidencePayload.data.generation, null);
   assert.equal(noEvidencePayload.data.context.citations.length, 0);
 
+  const retrievalEvaluation = await fetch(base + "/v1/evaluations/retrieval", {
+    method: "POST",
+    headers: {"content-type":"application/json","x-api-key":apiKey},
+    body: JSON.stringify({
+      dataset_name:"http-smoke",
+      dataset_version:"1.0",
+      top_k:5,
+      cases:[{
+        id:"known-document",
+        query:"teste",
+        expected_chunk_ids:[contextPayload.data.context.citations[0]?.chunk_id]
+      }]
+    })
+  });
+  assert.equal(retrievalEvaluation.status, 200);
+  const evaluationPayload = await retrievalEvaluation.json() as {
+    data:{dataset:{name:string;version:string;sha256:string};metrics:{precision_at_k:number;recall_at_k:number;mrr:number;hit_rate_at_k:number};retrieval:{semantic:boolean}}
+  };
+  assert.equal(evaluationPayload.data.dataset.name, "http-smoke");
+  assert.equal(evaluationPayload.data.dataset.version, "1.0");
+  assert.match(evaluationPayload.data.dataset.sha256, /^[a-f0-9]{64}$/);
+  assert.equal(evaluationPayload.data.metrics.recall_at_k, 1);
+  assert.equal(evaluationPayload.data.metrics.mrr, 1);
+  assert.equal(evaluationPayload.data.retrieval.semantic, false);
+
+  const groundingEvaluation = await fetch(base + "/v1/evaluations/grounding", {
+    method: "POST",
+    headers: {"content-type":"application/json","x-api-key":apiKey},
+    body: JSON.stringify({
+      answer:"Resposta sustentada [cite_valid]. Outra afirmação [cite_invalid].",
+      available_citation_ids:["cite_valid"],
+      abstained:false
+    })
+  });
+  assert.equal(groundingEvaluation.status, 200);
+  const groundingPayload = await groundingEvaluation.json() as {
+    data:{metrics:{citation_precision:number;citation_coverage:number;invalid_citation_count:number};invalid_citation_ids:string[]}
+  };
+  assert.equal(groundingPayload.data.metrics.citation_precision, 0.5);
+  assert.equal(groundingPayload.data.metrics.citation_coverage, 0.5);
+  assert.equal(groundingPayload.data.metrics.invalid_citation_count, 1);
+  assert.deepEqual(groundingPayload.data.invalid_citation_ids, ["cite_invalid"]);
+
   const embeddingIndex = await fetch(base + "/v1/knowledge/embeddings/index", {
     method: "POST",
     headers: {"content-type":"application/json","x-api-key":apiKey},
