@@ -164,3 +164,30 @@ Autenticado. Lista embeddings persistidos para o documento do projeto autenticad
 O mock é hash-derived e determinístico, apenas para testar contrato e persistência. Não codifica significado linguístico e não pode ser usado para recuperação semântica ou avaliação de relevância. O armazenamento SQLite não executa busca vetorial nesta etapa.
 
 Erros adicionais: EMBEDDING_VALIDATION_ERROR 400, EMBEDDING_DOCUMENT_EMPTY 400, EMBEDDING_PROVIDER_INVALID_OUTPUT 502, KNOWLEDGE_DOCUMENT_NOT_FOUND 404.
+
+
+## Etapa 7 — Vector Search + Hybrid Retrieval
+
+### POST /v1/knowledge/search/hybrid
+
+Autenticado. Request JSON:
+```json
+{
+  "query": "manual manutenção",
+  "source_id": "ks_...",
+  "document_id": "kd_...",
+  "limit": 10,
+  "candidate_limit": 500,
+  "rrf_k": 60
+}
+```
+
+`query` é obrigatório (2-200 caracteres); filtros são opcionais; `limit` aceita 1-50 (padrão 10); `candidate_limit` aceita 1-500 (padrão 500); `rrf_k` aceita 1-1000 (padrão 60).
+
+A rota exige provider com `embedQuery()`, `semantic: true` e `simulated: false`. A busca vetorial filtra estritamente projeto, provider, modelo, versão, dimensão, flags semânticas e hash atual do chunk. Vetores simulados e embeddings obsoletos são excluídos. Vetores inválidos (JSON, dimensão, valores não finitos, vetor zero ou não normalizado) causam erro explícito.
+
+O scan vetorial inicial é in-process e limitado a no máximo 500 candidatos por consulta. Similaridade cosseno é calculada sobre vetores normalizados. A recuperação lexical FTS5 é executada em paralelo lógico; o ranking combinado usa Reciprocal Rank Fusion (RRF), com `1/(k + rank)` por canal. Scores BM25 e cosseno não são somados diretamente.
+
+Resposta identifica `strategy: hybrid_rrf`, `semantic: true`, metadados do modelo, quantidade de candidatos e campos `lexical_rank`, `vector_rank`, `lexical_score`, `vector_score` e `hybrid_score`. Não há fallback silencioso para lexical-only. O provider padrão continua sendo MockEmbeddingProvider, portanto esta rota retorna 503 até que um provider semântico real com embedQuery esteja injetado e embeddings reais compatíveis tenham sido indexados.
+
+Erros adicionais: SEMANTIC_PROVIDER_UNAVAILABLE 503, EMBEDDING_PROVIDER_INVALID_OUTPUT 502, VECTOR_DATA_INVALID 500, VECTOR_DIMENSION_MISMATCH 500.
