@@ -1,123 +1,74 @@
-# 👋 Daniel Schroeder
+# Daniel Schroeder — Schr Sistemas
 
-💻 Software Engineer | ERP | Automação Comercial | Sistemas Fiscais  
-📍 +15 anos resolvendo problemas reais em produção  
+**Analista Desenvolvedor | Engenharia de Software | ERP | Integrações | Automação**
 
----
+Desenvolvimento e evolução de sistemas empresariais, integrações fiscais e soluções digitais. Atuação prática em ambientes de produção, com foco em confiabilidade, diagnóstico técnico e resolução de problemas de negócio.
 
-## 🧠 Sobre mim
-
-Desenvolvedor com forte atuação em sistemas corporativos, automação comercial e integrações fiscais.
-
-Experiência prática em ambientes críticos, lidando com:
-
-- NFCe, NFe, CTe (SEFAZ)
-- PDV e automação comercial
-- Banco de dados corrompido / recuperação
-- Sistemas legados em produção
-- Suporte técnico de alto nível
-
-👉 Foco não é só código — é **resolver problema de negócio**.
+🌐 **Portal:** https://schrsistemas.com  
+🔌 **API:** https://api.schrsistemas.com  
+💻 **Código-fonte da plataforma:** [schrsistemas-platform](https://github.com/schrsistemas/schrsistemas-platform)
 
 ---
 
-## 🚀 Stack Principal
+## Áreas de atuação
 
-### 🧱 Backend / Desktop
-- Delphi (FireDAC, arquitetura ERP)
-- ACBR (NFe, NFCe, CTe)
-- Node.js (automação, bots, APIs)
-- PHP
+- Sistemas ERP, automação comercial e aplicações desktop.
+- Integrações fiscais brasileiras: NF-e, NFC-e e CT-e.
+- APIs REST, integração entre serviços e automação de processos.
+- Banco de dados, modelagem SQL, manutenção e migração.
+- Aplicações web, PWA e soluções mobile.
+- IoT, sensores, telemetria e comunicação com dispositivos.
 
-### 📱 Mobile
-- Java (Android)
+## Stack técnica
 
-### 🗄️ Banco de Dados
-- Firebird (especialista)
-- SQL
+| Área | Tecnologias |
+|---|---|
+| Desktop / ERP | Delphi, FireDAC |
+| Bancos de dados | Firebird, SQL |
+| Backend | Node.js, TypeScript, PHP, Python |
+| Web | React, Next.js, Vue |
+| Mobile | Java / Android |
+| Cloud e APIs | Cloudflare Workers, Cloudflare Pages, REST |
+| IoT e hardware | ESP32, Arduino, sensores |
 
-### ⚙️ Outros
-- Integração com hardware (balança, impressora, SAT)
-- Arduino / microcontroladores (básico)
+## Projetos e portfólio
 
----
+Os projetos e iniciativas públicas são apresentados no portal institucional:
 
-## 💣 Diferencial
+**https://schrsistemas.com/projetos/**
 
-- Experiência real em produção (não só projeto acadêmico)
-- Forte atuação em sistemas fiscais brasileiros
-- Capacidade de diagnosticar problemas complexos rapidamente
-- Atua bem sob pressão (incidentes críticos)
-- Conhecimento de ponta a ponta (DB → backend → PDV)
+O portfólio é atualizado conforme os projetos atingem estágios adequados para divulgação. Sistemas de clientes e projetos privados não são expostos por razões de confidencialidade.
 
----
+## Arquitetura da plataforma
 
-## 🧠 Atualmente evoluindo
+O código-fonte e a documentação técnica estão centralizados no repositório privado:
 
-- Inteligência Artificial aplicada ao suporte
-- Bots inteligentes (Discord / automação de tarefas)
-- Arquitetura moderna com Node.js
-- Melhoria de produtividade e automação de processos
+[**schrsistemas-platform**](https://github.com/schrsistemas/schrsistemas-platform)
 
----
+Estrutura principal:
 
-## 📦 Projetos em destaque
+- `site/` — portal institucional Next.js, exportado como site estático.
+- `workers/api/` — API HTTP publicada no Cloudflare Workers.
+- `workers/ai-core/` — núcleo de serviços e experimentação com IA.
+- `docs/` — arquitetura, contratos, inventário e procedimentos operacionais.
+- `.github/workflows/` — validações automatizadas por componente.
 
-👉 Em evolução:
-- Discord AI Bot (automação de suporte + gestão de tarefas)
-- Sistemas de automação e atendimento inteligente
+Site e API possuem pipelines independentes. Alterações no site não devem publicar a API, e alterações exclusivas na API não devem publicar o site.
 
-⚠️ Observação:
-Grande parte dos projetos reais são privados (ERP e clientes)
+## Princípios de engenharia
 
----
+- Preservar a estabilidade de sistemas legados em produção.
+- Evoluir arquitetura de forma incremental e verificável.
+- Separar responsabilidades entre interface, API, persistência e integrações.
+- Automatizar validações e documentar decisões técnicas.
+- Priorizar soluções sustentáveis, observáveis e com custo operacional previsível.
 
-## 📫 Contato
+## Contato
 
-- Email: schrsistemas@gmail.com  
-- LinkedIn: https://www.linkedin.com/in/schrsistemas/  
-- WhatsApp: https://wa.me/5547997368457  
-
----
-
-## 🎯 Objetivo
-
-Evoluir para:
-
-- Engenheiro de Software Sênior estratégico
-- Arquitetura de sistemas
-- Automação inteligente com IA
-- Criação de produtos próprios (SaaS)
+- **E-mail:** schrsistemas@gmail.com
+- **LinkedIn:** https://www.linkedin.com/in/schrsistemas/
+- **Portal:** https://schrsistemas.com
 
 ---
 
-## 🌐 Portal institucional
-
-O portal público da Schr Sistemas está em desenvolvimento no diretório `site/`.
-
-- Domínio planejado: https://schrsistemas.com
-- Aplicação: Next.js + TypeScript + Material UI
-- Hospedagem: Cloudflare Pages (exportação estática)
-- Branch de produção: `main`
-
-## 🔌 API e serviços
-
-A API HTTP fica separada em `workers/api/` e será executada no Cloudflare Workers. Pages e Workers usam o mesmo repositório, mas possuem builds e implantações independentes.
-
-- Health check: `GET /api/health`
-- Contrato: [docs/API-CONTRACT.md](docs/API-CONTRACT.md)
-- Configuração do Worker: [workers/api/README.md](workers/api/README.md)
-
-## 📚 Documentação
-
-- [Diretrizes para agentes de IA](AGENTS.md)
-- [Arquitetura híbrida](docs/ARCHITECTURE.md)
-- [Plano de engenharia, segurança e IA](docs/ENGINEERING-ROADMAP.md)
-- [Inventário técnico e linha de base](docs/INVENTORY-BASELINE.md)
-- [Contrato da API](docs/API-CONTRACT.md)
-- [Publicação Cloudflare](docs/DEPLOY-CLOUDFLARE.md)
-- [Manutenção do conteúdo](docs/CONTENT-MAINTENANCE.md)
-- [Instruções do site](site/README.md)
-- [Padrão de capacidade, escalabilidade e custo previsível](docs/engineering-capacity-and-scalability.md)
-
-O domínio permanece registrado na Hostinger. A publicação e a conexão do domínio dependem da configuração e validação nos painéis Cloudflare e DNS. Não considerar Pages, Worker ou domínio publicados até confirmar os respectivos deploys.
+*Este README é o perfil público e o ponto de entrada do portfólio. O código-fonte completo permanece no repositório privado da plataforma.*
