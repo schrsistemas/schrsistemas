@@ -331,3 +331,19 @@ Implementação inicial adiciona `hybrid-search-service.ts` e `POST /v1/knowledg
 - MockEmbeddingProvider continua default e é recusado no caminho semântico.
 
 **Limitações:** o adaptador Local E5 ainda não foi testado com pesos ONNX reais; não há ANN; a busca vetorial é linear e limitada. A etapa não ativa provider local automaticamente e não altera a política de custo zero.
+
+
+## Etapa 8 — RAG Pipeline inicial
+
+Implementação inicial adiciona `rag-answer-service.ts` e o endpoint autenticado `POST /v1/knowledge/answer`.
+
+- Pipeline: busca lexical FTS5 -> Context Builder com orçamento -> geração pelo provider resolvido no ProviderRegistry.
+- Seleção de modelo opcional; modelos desconhecidos são rejeitados.
+- Prompt de sistema delimita evidências, instrui não inventar fatos e exige referências `[cite_id]`.
+- Conteúdo documental é tratado como dado não confiável, não como instrução.
+- Resposta carrega estratégia de retrieval, indicador semântico, citações com proveniência/offset/hash, truncamento e metadados de geração.
+- Sem evidências: abstenção determinística e não invoca o provider.
+- Prompts/respostas não são persistidos.
+- Testes unitários para evidência, citações, abstenção e limites; teste HTTP integrado.
+
+**Limites:** retrieval RAG é lexical (`semantic: false`), não híbrido. O provider padrão é MockProvider e a resposta é marcada como simulada. Instruções de grounding não garantem correção; avaliação automática de groundedness, checagem de citações geradas e inferência local real continuam pendentes.
