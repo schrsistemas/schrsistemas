@@ -27,7 +27,7 @@ export interface VectorStore {
 export class SqliteVectorStore implements VectorStore {
   constructor(private readonly db: Database.Database) {}
 
-  upsert(embedding: Omit<StoredEmbedding, "id" | "created_at">): void {
+  upsert(embedding: NewStoredEmbedding): void {
     this.db.prepare(`
       INSERT INTO knowledge_embeddings(
         id,project_id,source_id,document_id,chunk_id,content_hash,
