@@ -1,74 +1,49 @@
-# Daniel Schroeder — Schr Sistemas
+# Daniel Schroeder
 
-**Analista Desenvolvedor | Engenharia de Software | ERP | Integrações | Automação**
+**Analista Desenvolvedor | Engenharia de Software | Sistemas Empresariais | Integrações e Automação**
 
-Desenvolvimento e evolução de sistemas empresariais, integrações fiscais e soluções digitais. Atuação prática em ambientes de produção, com foco em confiabilidade, diagnóstico técnico e resolução de problemas de negócio.
+Profissional de desenvolvimento de software com atuação em sistemas empresariais, ERP, automação comercial, integrações fiscais e evolução de aplicações. Experiência prática com manutenção de sistemas em produção, bancos de dados, APIs e integração entre plataformas.
 
-🌐 **Portal:** https://schrsistemas.com  
-🔌 **API:** https://api.schrsistemas.com  
-💻 **Código-fonte da plataforma:** [schrsistemas-platform](https://github.com/schrsistemas/schrsistemas-platform)
-
----
-
-## Áreas de atuação
-
-- Sistemas ERP, automação comercial e aplicações desktop.
-- Integrações fiscais brasileiras: NF-e, NFC-e e CT-e.
-- APIs REST, integração entre serviços e automação de processos.
-- Banco de dados, modelagem SQL, manutenção e migração.
-- Aplicações web, PWA e soluções mobile.
-- IoT, sensores, telemetria e comunicação com dispositivos.
-
-## Stack técnica
+## Perfil técnico
 
 | Área | Tecnologias |
 |---|---|
-| Desktop / ERP | Delphi, FireDAC |
+| Desenvolvimento desktop e ERP | Delphi, FireDAC |
 | Bancos de dados | Firebird, SQL |
-| Backend | Node.js, TypeScript, PHP, Python |
-| Web | React, Next.js, Vue |
-| Mobile | Java / Android |
-| Cloud e APIs | Cloudflare Workers, Cloudflare Pages, REST |
-| IoT e hardware | ESP32, Arduino, sensores |
+| Backend e serviços | Node.js, TypeScript, PHP, Python |
+| Desenvolvimento web | Vue.js, React, Next.js |
+| Mobile | Java, Android |
+| APIs e integração | APIs REST, integração entre sistemas e automação |
+| IoT e dispositivos | ESP32, Arduino, sensores e comunicação embarcada |
 
-## Projetos e portfólio
+## Áreas de atuação
 
-Os projetos e iniciativas públicas são apresentados no portal institucional:
+- Desenvolvimento, manutenção e modernização de sistemas empresariais.
+- Diagnóstico e resolução de problemas em aplicações de produção.
+- Integração de serviços, APIs e plataformas.
+- Modelagem SQL, manutenção e migração de bancos de dados.
+- Automação de processos e desenvolvimento de ferramentas.
+- Aplicações desktop, web e mobile.
+- Pesquisa e desenvolvimento com dispositivos embarcados e IoT.
 
-**https://schrsistemas.com/projetos/**
+## Portfólio e presença profissional
 
-O portfólio é atualizado conforme os projetos atingem estágios adequados para divulgação. Sistemas de clientes e projetos privados não são expostos por razões de confidencialidade.
-
-## Arquitetura da plataforma
-
-O código-fonte e a documentação técnica estão centralizados no repositório privado:
-
-[**schrsistemas-platform**](https://github.com/schrsistemas/schrsistemas-platform)
-
-Estrutura principal:
-
-- `site/` — portal institucional Next.js, exportado como site estático.
-- `workers/api/` — API HTTP publicada no Cloudflare Workers.
-- `workers/ai-core/` — núcleo de serviços e experimentação com IA.
-- `docs/` — arquitetura, contratos, inventário e procedimentos operacionais.
-- `.github/workflows/` — validações automatizadas por componente.
-
-Site e API possuem pipelines independentes. Alterações no site não devem publicar a API, e alterações exclusivas na API não devem publicar o site.
-
-## Princípios de engenharia
-
-- Preservar a estabilidade de sistemas legados em produção.
-- Evoluir arquitetura de forma incremental e verificável.
-- Separar responsabilidades entre interface, API, persistência e integrações.
-- Automatizar validações e documentar decisões técnicas.
-- Priorizar soluções sustentáveis, observáveis e com custo operacional previsível.
-
-## Contato
-
-- **E-mail:** schrsistemas@gmail.com
+- **Site:** https://schrsistemas.com
+- **Projetos:** https://schrsistemas.com/projetos/
 - **LinkedIn:** https://www.linkedin.com/in/schrsistemas/
-- **Portal:** https://schrsistemas.com
+- **GitHub:** https://github.com/schrsistemas
+- **E-mail profissional:** schrsistemas@gmail.com
+
+## Schr Sistemas
+
+A Schr Sistemas reúne iniciativas de desenvolvimento de software, soluções empresariais e projetos de tecnologia.
+
+O portal institucional concentra a apresentação pública dos serviços e projetos. O código-fonte e a documentação técnica da plataforma ficam em repositório separado:
+
+**[schrsistemas-platform](https://github.com/schrsistemas/schrsistemas-platform)**
+
+Este repositório funciona como apresentação profissional e índice do portfólio, não como repositório de implementação da plataforma.
 
 ---
 
-*Este README é o perfil público e o ponto de entrada do portfólio. O código-fonte completo permanece no repositório privado da plataforma.*
+*Daniel Schroeder — Analista Desenvolvedor | Schr Sistemas*
