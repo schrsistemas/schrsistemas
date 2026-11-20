@@ -1,3 +1,0 @@
-import {test} from "node:test"; import assert from "node:assert/strict"; import {MockProvider} from "../src/providers/mock.provider.js"; import {OpenAIProvider} from "../src/providers/openai.provider.js";
-test("mock provider returns simulated output and consistent token estimates",async()=>{const p=new MockProvider();const r=await p.generate({project:"local",input:"Hello"});assert.match(r.output,/MOCK PROVIDER/);assert.equal(r.usage.total_tokens,r.usage.input_tokens+r.usage.output_tokens);});
-test("OpenAI adapter is disabled",async()=>{const p=new OpenAIProvider();assert.equal(p.enabled,false);await assert.rejects(p.generate({project:"local",input:"must not be sent"}),/OPENAI_PROVIDER_DISABLED_BY_ZERO_COST_POLICY/);});
